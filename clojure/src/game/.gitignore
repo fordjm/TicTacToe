@@ -1,0 +1,14 @@
+/target
+/lib
+/classes
+/checkouts
+/.idea
+pom.xml
+game.iml
+*.jar
+*.class
+.lein-deps-sum
+.lein-failures
+.lein-plugins
+.lein-repl-history
+.nrepl-port
