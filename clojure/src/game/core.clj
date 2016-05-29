@@ -12,40 +12,38 @@
 																	 [:board :p1 :p2])))
 		game))
 
-(def game (make-game))
+(defn rows [board]
+	(partition 3 board))
 
-(defn rows []
-	(partition 3 (:board @game)))
+(defn cols [board]
+	(apply map vector (rows board)))
 
-(defn cols []
-	(apply map vector (rows)))
-
-(defn diags []
+(defn diags [board]
 	"Doesn't read well"
-	(for [outer [(rows) (reverse (cols))]]
+	(for [outer [(rows board) (reverse (cols board))]]
 		(for [inner (range (count outer))]
 			(nth (nth outer inner) inner))))
 
-(defn sections []
-	(concat (rows) (cols) (diags)))
+(defn sections [board]
+	(concat (rows board) (cols board) (diags board)))
 
-(defn win? []
+(defn win? [board]
 	(some (fn [coll] (apply = coll))
-				(sections)))
+				(sections board)))
 
-(defn tie? []
-	(and (empty? (filter integer? (:board @game)))
-			 (not (win?))))
+(defn tie? [board]
+	(and (empty? (filter integer? board))
+			 (not (win? board))))
 
-(defn game-over? []
-	(or (win?) (tie?)))
+(defn game-over? [board]
+	(or (win? board) (tie? board)))
 
-(defn winner []
-	(if (win?)
+(defn winner [board]
+	(if (win? board)
 		(apply first (filter (fn [coll] (= 1 (count (distinct coll))))
-												 (sections)))))
+												 (sections board)))))
 
-(defn move [space]
+(defn move [game space]
 	"Are the two swaps a design smell?  Temporal dependency? (no proof yet...)"
 	(if (contains? (set (:board @game)) space)
 		(let [p1 (:p1 @game)]
@@ -55,22 +53,21 @@
 						 :p2 p1
 						 :space space)
 			(swap! game assoc
-						 :ongoing (not (game-over?))
-						 :winner (winner)))
+						 :ongoing (not (game-over? (:board @game)))
+						 :winner (winner (:board @game))))
 		{}))
 
-(defn reset []
+(defn reset [game]
 	(swap! game (fn [oldval] new-game)))
 
-(defn make-move [space]
-	(fn [] (move space)))
+(defn make-move [game space]
+	(fn [] (move game space)))
 
-(defn add-move-to-history [move oldval]
-	(if (not= oldval @game)
+(defn add-move-to-history [move newval]
+	(if (not (empty? newval))
 		(swap! moves conj move)))
 
 (defn execute-move [move]
-	(let [oldval @game
-				result (move)]
-		(add-move-to-history move oldval)
-		result))
+	(let [newval (move)]
+		(add-move-to-history move newval)
+		newval))

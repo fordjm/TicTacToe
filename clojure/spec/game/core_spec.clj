@@ -13,8 +13,10 @@
 		(place-tokens
 			(place-tokens empty-board p1-moves 'X) p2-moves 'O)))
 
+(def game (atom {}))
+
 (defn moving-to-space-should-yield-response [space response]
-	(should= response (execute-move (make-move space))))
+	(should= response (execute-move (make-move game space))))
 
 (defn interleave-moves [p1-moves p2-moves]
 	(if (= (count p1-moves) (count p2-moves))
@@ -24,7 +26,7 @@
 (defn run-moves [p1-moves p2-moves]
 	"How can I refactor this?"
 	(map execute-move
-			 (map make-move
+			 (map (fn [space] (make-move game space))
 						(interleave-moves p1-moves p2-moves))))
 
 (defn running-moves-should-yield-response [p1-moves p2-moves state]
@@ -37,7 +39,7 @@
 
 (describe "game.core"
 	(before
-		(reset)
+		(reset game)
 		(swap! moves (fn [oldval] [])))
 
 	(it "creates a new game"
@@ -55,7 +57,7 @@
 				(should= (make-move-response [4] [0] 0 'X 'O true nil)
 								 (second executed))
 
-				(reset)
+				(reset game)
 				(should= executed
 								 (for [move @moves] (move)))))
 
@@ -113,5 +115,5 @@
 			(running-moves-should-yield-response
 				[0 1 5 6 2] [3 4 7 8]
 				(make-move-response [0 1 5 6 2] [3 4 7 8] 2 'O 'X false 'X))
-			(should-not (tie?)))
+			(should-not (tie? (:board @game))))
 	)

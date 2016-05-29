@@ -3,7 +3,7 @@
 						[game.core :as core]
 						[clojure.string :as string]))
 
-;Depending directly on the core means I have no boundaries (maybe.)
+;Depending directly on the core means I have no boundaries (unless values are the boundaries.)
 (defn render-rows [rows]
 	"Can I use reduce with string/join to fix duplication? (not so far)"
 	(for [idx (range (count rows))]
@@ -38,22 +38,26 @@
 	(or (false? value) (true? value)))
 
 (defn model-valid? [model]
-	"Why should UI know/care about model details if model has correct parts?"
+	"Not really a model if I'm passing back a value"
 	(let [board (:board model)]
 		(and (map? model) (coll? board) (= size (count board))
 				 (boolean? (:ongoing model)) (contains? model :winner))))
 
+(def game (atom {}))
+
 (defn move-view [model]
 	(if (model-valid? model)
-		(println (str (render-board (:board model))
-									(render-status model)))
+		(do
+			(swap! game (fn [oldval] model))
+			(println (str (render-board (:board model))
+										(render-status model))))
 		nil))
 
 (defn handle-end [request]
 	(System/exit 0))
 
 (defn handle-move [request]
-	(core/execute-move (core/make-move (:space request))))
+	(core/execute-move (core/make-move game (:space request))))
 
 (defn handle-start [request]
 	core/new-game)
@@ -73,6 +77,6 @@
 	"Not so sure about this location"
 	(loop [request {:path "/start"}]
 		(ui-instance request)
-		(if (core/game-over?)
+		(if (core/game-over? (:board @game))
 			(recur {:path "/end"})
 			(recur {:path "/move" :space (try-parse-int (read-line))}))))

@@ -38,7 +38,7 @@
 (defn printed-line [line]
 	(str line "\r\n"))
 
-(defn make-move-stub [space]
+(defn make-move-stub [game space]
 	(fn [] {:board (repeat size space) :ongoing true :winner nil}))
 
 (defn execute-move-stub [move]
@@ -51,16 +51,16 @@
 
 (def test-move-request {:path "/move" :space "4"})
 
-(defn run-with-stubs [fn]
+(defn run-with-move-stubs [fct]
 	(with-redefs [core/make-move make-move-stub
 								core/execute-move execute-move-stub]
-		(fn)))
+		(fct)))
 
 (describe "game.ui"
 	(it "does not plagiarize"
 			(should (give-credit)))
 
-	(it "does not render an invalid move"
+	(it "does not render an invalid model"
 			(does-not-render-invalid-model nil)
 			(does-not-render-invalid-model 'X)
 			(does-not-render-invalid-model {})
@@ -129,7 +129,7 @@
 	(it "tests ui-instance with move request"
 			(should= (printed-line (str (render-board (repeat size 4)) prompt-str))
 							 (with-out-str
-								 (run-with-stubs
+								 (run-with-move-stubs
 									 (fn [] (ui-instance test-move-request))))))
 
 	(it "tests ui-instance with end request - exits the tests"
