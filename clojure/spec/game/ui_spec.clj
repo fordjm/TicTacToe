@@ -1,6 +1,7 @@
 (ns game.ui-spec
 	(:require [speclj.core :refer :all]
 						[game.ui :refer :all]
+						[game.console-ui :refer :all]
 						[game.core :as core]))
 
 (def empty-board (vec (range size)))
@@ -50,7 +51,7 @@
 
 (def test-move-request {:path "/move" :space "4"})
 
-(defn run-with-move-stubs [fn]
+(defn run-with-stubs [fn]
 	(with-redefs [core/make-move make-move-stub
 								core/execute-move execute-move-stub]
 		(fn)))
@@ -119,7 +120,7 @@
 										(render [] no-moves-model)))
 
 	(it "filters non-integer space input"
-			(should= nil (int-parsing-filter {:space "w"})))
+			(should= "" (with-out-str (ui-instance {:path "/move" :space "w"}))))
 
 	(it "tests ui-instance with start request"
 			(should= (printed-line (str empty-board-string prompt-str))
@@ -128,7 +129,7 @@
 	(it "tests ui-instance with move request"
 			(should= (printed-line (str (render-board (repeat size 4)) prompt-str))
 							 (with-out-str
-								 (run-with-move-stubs
+								 (run-with-stubs
 									 (fn [] (ui-instance test-move-request))))))
 
 	(it "tests ui-instance with end request - exits the tests"

@@ -1,1 +1,1 @@
-Play the game with lein run
+# game

@@ -1,44 +1,9 @@
-(ns game.ui
-	(:require [clojure.string :as string]
-						[game.core :as core]))
+(ns game.console-ui
+	(:require [game.ui :refer :all]
+						[game.core :as core]
+						[clojure.string :as string]))
 
-;Depending directly on the core means I have no boundaries.
-
-(def size core/size)
-
-(defn give-credit []
-	(str "Adapted from Clojure TinyWeb (2.4) in "
-			 "Functional Programming Patterns "
-			 "by Michael Bevilacqua-Linn"))
-
-(defn render [view model]
-	(try (view model)
-			 (catch NullPointerException _
-				 (throw (Error. "View is null")))
-			 (catch ClassCastException _
-				 (throw (Error. "View is not a function")))
-			 (catch IllegalArgumentException _
-				 (throw (Error. "View is not a function")))))
-
-(defn apply-filters [filters request]
-	"TODO:  Remove me"
-	(let [lone-filter (first filters)]
-		(lone-filter request)))
-
-(defn execute-request [request handler]
-	(let [controller (handler :controller)
-				view (handler :view)]
-		(try (render view (controller request))
-				 (catch NullPointerException e (throw e)))))
-
-(defn ui [request-handlers filters]
-	(fn [request]
-		(let [filtered-request (apply-filters filters request)
-					path (request :path)
-					handler (request-handlers path)]
-			(execute-request filtered-request handler))))
-
-;===Move below to own namespace to allow different view implementations
+;Depending directly on the core means I have no boundaries (maybe.)
 (defn render-rows [rows]
 	"Can I use reduce with string/join to fix duplication? (not so far)"
 	(for [idx (range (count rows))]
@@ -84,15 +49,6 @@
 									(render-status model)))
 		nil))
 
-(defn int-parsing-filter [request]
-	"Don't think a filter should do this"
-	(let [space (:space request)]
-		(if space
-			(try
-				(assoc request :space (Integer. (:space request)))
-				(catch NumberFormatException e nil))
-			request)))
-
 (defn handle-end [request]
 	(System/exit 0))
 
@@ -106,8 +62,7 @@
 	{"/end" {:controller handle-end}
 	 "/move" {:controller handle-move :view move-view}
 	 "/start" {:controller handle-start :view move-view}})
-(def filters [int-parsing-filter])
-(def ui-instance (ui request-handlers filters))
+(def ui-instance (ui request-handlers))
 
 (defn try-parse-int [value]
 	(try
@@ -115,9 +70,9 @@
 		(catch NumberFormatException e nil)))
 
 (defn run-game []
+	"Not so sure about this location"
 	(loop [request {:path "/start"}]
 		(ui-instance request)
 		(if (core/game-over?)
 			(recur {:path "/end"})
-			(recur {:path "/move" :space (try-parse-int (read-line))})))
-	)
+			(recur {:path "/move" :space (try-parse-int (read-line))}))))

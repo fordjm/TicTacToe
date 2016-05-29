@@ -6,7 +6,7 @@
 (def x-takes-4 {:board (assoc empty-board 4 'X) :space 4 :p1 'O :p2 'X :ongoing true :winner nil})
 
 (defn make-board-state [p1-moves p2-moves]
-	"How to refactor place-tokens? (Who cares about move order?)"
+	"How to refactor place-tokens? (Doesn't preserve move order anyway.)"
 	(let [place-tokens (fn [board spaces token]
 											(vec (reduce (fn [board idx] (assoc board idx token))
 																	 board spaces)))]
@@ -16,13 +16,16 @@
 (defn moving-to-space-should-yield-response [space response]
 	(should= response (execute-move (make-move space))))
 
+(defn interleave-moves [p1-moves p2-moves]
+	(if (= (count p1-moves) (count p2-moves))
+		(interleave p1-moves p2-moves)
+		(cons (first p1-moves) (interleave p2-moves (rest p1-moves)))))
+
 (defn run-moves [p1-moves p2-moves]
 	"How can I refactor this?"
 	(map execute-move
 			 (map make-move
-						(if (= (count p1-moves) (count p2-moves))
-							(interleave p1-moves p2-moves)
-							(cons (first p1-moves) (interleave p2-moves (rest p1-moves)))))))
+						(interleave-moves p1-moves p2-moves))))
 
 (defn running-moves-should-yield-response [p1-moves p2-moves state]
 	(let [executed (run-moves p1-moves p2-moves)]

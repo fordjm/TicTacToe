@@ -1,93 +1,76 @@
 (ns game.core)
 
-  (def board (atom ["0" "1" "2" "3" "4" "5" "6" "7" "8"]))
+(def size 9)
+(def moves (atom []))
+(def new-game {:board (vec (range size)) :p1 'X :p2 'O :ongoing true :winner nil})
 
-  (defn game-over []
-   (or (= (get @board 0) (get @board 1) (get @board 2))
-    (= (get @board 3) (get @board 4) (get @board 5))
-    (= (get @board 6) (get @board 7) (get @board 8))
-    (= (get @board 0) (get @board 3) (get @board 6))
-    (= (get @board 1) (get @board 4) (get @board 7))
-    (= (get @board 2) (get @board 5) (get @board 8))
-    (= (get @board 0) (get @board 4) (get @board 8))
-    (= (get @board 2) (get @board 4) (get @board 6))))
+(defn make-game []
+	"TODO:  Complete validator - may be different for each type"
+	(let [game (atom new-game)]
+		(set-validator! game (fn [newval]
+													 (every? (fn [key] (contains? newval key))
+																	 [:board :p1 :p2])))
+		game))
 
-  (defn tie []
-   (and (not (= (get @board 0) "0"))
-    (not (= (get @board 1) "1"))
-    (not (= (get @board 2) "2"))
-    (not (= (get @board 3) "3"))
-    (not (= (get @board 4) "4"))
-    (not (= (get @board 5) "5"))
-    (not (= (get @board 6) "6"))
-    (not (= (get @board 7) "7"))
-    (not (= (get @board 8) "8"))))
+(def game (make-game))
 
-  (defn print-board []
-   (println (str " " (get @board 0) " | " (get @board 1) " | " (get @board 2) "\n===+===+===\n " (get @board 3) " | " (get @board 4) " | " (get @board 5) "\n===+===+===\n " (get @board 6) " | " (get @board 7) " | " (get @board 8) "\n")))
+(defn rows []
+	(partition 3 (:board @game)))
 
-(def best-move (atom nil))
+(defn cols []
+	(apply map vector (rows)))
 
-  (defn get-computer-move []
-   (if (= "4" (get @board 4))
-    (reset! board (assoc @board 4 "O"))
-    (do
-     (let [container []
-      available-spaces (vec (filter identity (for [s @board]
-            (do
-             (if (and (not (= s "X")) (not (= s "O")))
-              (conj container s))))))
-      results (vec (for [as available-spaces]
-          (do
-           (reset! board (assoc @board (Integer. (first as)) "O"))
-           (if (game-over)
-            (do
-             (reset! best-move (first as))
-             (reset! board (assoc @board (Integer. (first as)) (Integer. (first as)))))
-            (do
-             (reset! board (assoc @board (Integer. (first as)) "X"))
-             (if (game-over)
-              (do
-               (reset! best-move (Integer. (first as)))
-               (reset! board (assoc @board (Integer. (first as)) (Integer. (first as)))))
-              (reset! board (assoc @board (Integer. (first as)) (Integer. (first as))))))))))]
-      (if @best-move
-       (reset! board (assoc @board @best-move "O"))
-       (reset! board (assoc @board (Integer. (first (get available-spaces (rand-int (count available-spaces))))) "O")))
-      results))))
+(defn diags []
+	"Doesn't read well"
+	(for [outer [(rows) (reverse (cols))]]
+		(for [inner (range (count outer))]
+			(nth (nth outer inner) inner))))
 
-(def spot (atom nil))
+(defn sections []
+	(concat (rows) (cols) (diags)))
 
-  (defn get-human-spot []
-   (reset! spot nil)
-   (while (not @spot)
-    (do
-     (reset! spot (Integer. (read-line)))
-     (if (and (not (= (get board @spot) "X")) (not (= (get board @spot) "O")))
-      (reset! board (assoc @board @spot "X"))
-      (reset! spot nil)))))
+(defn win? []
+	(some (fn [coll] (apply = coll))
+				(sections)))
 
-  (defn game []
-   (if (or (not (game-over)) (not (tie)))
-    (do
-     (get-human-spot)
-     (print-board)
-     (if (or (not (game-over)) (not (tie)))
-      (do
-       (get-computer-move)
-       (print-board)
-       (game))
-      (do
-       (println "Game over")
-       (System/exit 0)))
-     (do
-      (println "Game over")
-      (System/exit 0)))))
+(defn tie? []
+	(and (empty? (filter integer? (:board @game)))
+			 (not (win?))))
 
-  (defn start-game []
-   (print-board)
-   (println "Enter [0-8]:")
-   (game))
+(defn game-over? []
+	(or (win?) (tie?)))
 
-  (defn -main []
-   (start-game))
+(defn winner []
+	(if (win?)
+		(apply first (filter (fn [coll] (= 1 (count (distinct coll))))
+												 (sections)))))
+
+(defn move [space]
+	"Are the two swaps a design smell?  Temporal dependency? (no proof yet...)"
+	(if (contains? (set (:board @game)) space)
+		(let [p1 (:p1 @game)]
+			(swap! game assoc
+						 :board (assoc (:board @game) space p1)
+						 :p1 (:p2 @game)
+						 :p2 p1
+						 :space space)
+			(swap! game assoc
+						 :ongoing (not (game-over?))
+						 :winner (winner)))
+		{}))
+
+(defn reset []
+	(swap! game (fn [oldval] new-game)))
+
+(defn make-move [space]
+	(fn [] (move space)))
+
+(defn add-move-to-history [move oldval]
+	(if (not= oldval @game)
+		(swap! moves conj move)))
+
+(defn execute-move [move]
+	(let [oldval @game
+				result (move)]
+		(add-move-to-history move oldval)
+		result))
