@@ -13,9 +13,9 @@
 			 (catch NullPointerException _
 				 (throw (Error. "View is null")))
 			 (catch ClassCastException _
-				 (throw (Error. "View is not a function")))
+				 (throw (Error. "Invalid view")))
 			 (catch IllegalArgumentException _
-				 (throw (Error. "View is not a function")))))
+				 (throw (Error. "Invalid view")))))
 
 (defn execute-request [request handler]
 	(let [controller (handler :controller)

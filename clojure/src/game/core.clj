@@ -2,15 +2,19 @@
 
 (def size 9)
 (def moves (atom []))
-(def new-game {:board (vec (range size)) :p1 'X :p2 'O :ongoing true :winner nil})
+(def new-game {:board (vec (range size)) :ongoing true :winner nil})
+(def new-players {:p1 'X :p2 'O})
 
 (defn make-game []
 	"TODO:  Complete validator - may be different for each type"
-	(let [game (atom new-game)]
+	(let [game (atom (merge new-game new-players))]
 		(set-validator! game (fn [newval]
 													 (every? (fn [key] (contains? newval key))
 																	 [:board :p1 :p2])))
 		game))
+
+(defn start-game []
+	@(make-game))
 
 (defn rows [board]
 	(partition 3 board))
@@ -58,7 +62,7 @@
 		{}))
 
 (defn reset [game]
-	(swap! game (fn [oldval] new-game)))
+	(swap! game (fn [oldval] @(make-game))))
 
 (defn make-move [game space]
 	(fn [] (move game space)))

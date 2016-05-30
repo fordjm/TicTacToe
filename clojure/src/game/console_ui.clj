@@ -5,7 +5,6 @@
 
 ;Depending directly on the core means I have no boundaries (unless values are the boundaries.)
 (defn render-rows [rows]
-	"Can I use reduce with string/join to fix duplication? (not so far)"
 	(for [idx (range (count rows))]
 		(str " " (string/join " " (string/join "|" (nth rows idx))))))
 
@@ -60,12 +59,13 @@
 	(core/execute-move (core/make-move game (:space request))))
 
 (defn handle-start [request]
-	core/new-game)
+	(core/start-game))
 
 (def request-handlers
 	{"/end" {:controller handle-end}
 	 "/move" {:controller handle-move :view move-view}
 	 "/start" {:controller handle-start :view move-view}})
+
 (def ui-instance (ui request-handlers))
 
 (defn try-parse-int [value]

@@ -114,9 +114,9 @@
 	(it "throws an error when passed an invalid view"
 			(should-throw Error "View is null"
 										(render nil no-moves-model))
-			(should-throw Error "View is not a function"
+			(should-throw Error "Invalid view"
 										(render "Alaska" no-moves-model))
-			(should-throw Error "View is not a function"
+			(should-throw Error "Invalid view"
 										(render [] no-moves-model)))
 
 	(it "filters non-integer space input"
