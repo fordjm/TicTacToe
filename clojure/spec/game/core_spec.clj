@@ -5,9 +5,10 @@
 (def empty-board (vec (range 9)))
 (def p1 (:p1 new-players))
 (def p2 (:p2 new-players))
+(def game (atom {}))
 
 (defn p1-takes-4 []
-	{:board (assoc empty-board 4 p1) :space 4 :p1 p2 :p2 p1 :ongoing true :winner nil})
+	{:board (assoc empty-board 4 (:token p1)) :space 4 :p1 p2 :p2 p1 :ongoing true :winner nil})
 
 (defn make-board-state [p1-moves p2-moves]
 	"How to refactor place-tokens? (Doesn't preserve move order anyway.)"
@@ -15,9 +16,7 @@
 											(vec (reduce (fn [board idx] (assoc board idx token))
 																	 board spaces)))]
 		(place-tokens
-			(place-tokens empty-board p1-moves p1) p2-moves p2)))
-
-(def game (atom {}))
+			(place-tokens empty-board p1-moves (:token p1)) p2-moves (:token p2))))
 
 (defn interleave-moves [p1-moves p2-moves]
 	(if (= (count p1-moves) (count p2-moves))
@@ -37,7 +36,7 @@
 
 (defn make-move-response [p1-moves p2-moves space p1 p2 ongoing winner]
 	"TODO:  Refactor"
-	{:board (make-board-state p1-moves p2-moves) :space space :p1 p1 :p2 p2 :ongoing ongoing :winner winner})
+	{:board (make-board-state p1-moves p2-moves) :space space :p1 p1 :p2 p2 :ongoing ongoing :winner (:token winner)})
 
 (describe "game.core"
 	(before
@@ -45,7 +44,7 @@
 		(swap! moves (fn [oldval] [])))
 
 	(it "creates a new game"
-			(should= (merge new-game new-players) (start-game)))
+			(should= (merge new-game new-players) (setup-game)))
 
 	(it "does not move out-of-bounds"
 			(should= {} (execute-move (make-move game -1)))

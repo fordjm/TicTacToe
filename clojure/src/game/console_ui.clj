@@ -4,6 +4,8 @@
 						[clojure.string :as string]))
 
 ;Depending directly on the core means I have no boundaries (unless values are the boundaries.)
+(def size core/size)
+
 (defn render-rows [rows]
 	(for [idx (range (count rows))]
 		(str " " (string/join " " (string/join "|" (nth rows idx))))))
@@ -20,7 +22,7 @@
 (defn render-prompt [model]
 	(let [space (:space model)]
 		(if space
-			(str (:p2 model) " chose " space)
+			(str (:token (:p2 model)) " chose " space)
 			"\nEnter[0-8]:")))
 
 (defn render-result [winner]
@@ -56,15 +58,16 @@
 	(System/exit 0))
 
 (defn handle-move [request]
+	"Why not pass the whole request?"
 	(core/execute-move (core/make-move game (:space request))))
 
-(defn handle-start [request]
-	(core/start-game))
+(defn handle-setup [request]
+	(core/setup-game))
 
 (def request-handlers
 	{"/end" {:controller handle-end}
 	 "/move" {:controller handle-move :view move-view}
-	 "/start" {:controller handle-start :view move-view}})
+	 "/setup" {:controller handle-setup :view move-view}})
 
 (def ui-instance (ui request-handlers))
 
@@ -75,8 +78,8 @@
 
 (defn run-game []
 	"Not so sure about this location"
-	(loop [request {:path "/start"}]
+	(loop [request {:path "/setup"}]
 		(ui-instance request)
-		(if (core/game-over? (:board @game))
-			(recur {:path "/end"})
-			(recur {:path "/move" :space (try-parse-int (read-line))}))))
+		(if (:ongoing @game)
+			(recur {:path "/move" :space (try-parse-int (read-line))})
+			(recur {:path "/end"}))))

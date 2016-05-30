@@ -3,17 +3,17 @@
 (def size 9)
 (def moves (atom []))
 (def new-game {:board (vec (range size)) :ongoing true :winner nil})
-(def new-players {:p1 'X :p2 'O})
+(def new-players {:p1 {:token 'X} :p2 {:token 'O}})
 
 (defn make-game []
-	"TODO:  Complete validator - may be different for each type"
+	"TODO:  Complete validator - should be different for each type (TM)"
 	(let [game (atom (merge new-game new-players))]
 		(set-validator! game (fn [newval]
 													 (every? (fn [key] (contains? newval key))
 																	 [:board :p1 :p2])))
 		game))
 
-(defn start-game []
+(defn setup-game []
 	@(make-game))
 
 (defn rows [board]
@@ -48,21 +48,20 @@
 												 (sections board)))))
 
 (defn move [game space]
-	"Are the two swaps a design smell?  Temporal dependency? (no proof yet...)"
 	(if (contains? (set (:board @game)) space)
-		(let [p1 (:p1 @game)]
+		(let [p1 (:p1 @game)
+					board (assoc (:board @game) space (:token p1))]
 			(swap! game assoc
-						 :board (assoc (:board @game) space p1)
+						 :board board
 						 :p1 (:p2 @game)
 						 :p2 p1
-						 :space space)
-			(swap! game assoc
-						 :ongoing (not (game-over? (:board @game)))
-						 :winner (winner (:board @game))))
+						 :space space
+						 :ongoing (not (game-over? board))
+						 :winner (winner board)))
 		{}))
 
 (defn reset [game]
-	(swap! game (fn [oldval] @(make-game))))
+	(swap! game (fn [oldval] (setup-game))))
 
 (defn make-move [game space]
 	(fn [] (move game space)))

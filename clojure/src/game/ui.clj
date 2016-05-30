@@ -1,7 +1,4 @@
-(ns game.ui
-	(:require [game.core :as core]))
-
-(def size core/size)
+(ns game.ui)
 
 (defn give-credit []
 	(str "Adapted from Clojure TinyWeb (2.4) in "
