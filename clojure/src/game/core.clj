@@ -3,18 +3,42 @@
 (def size 9)
 (def moves (atom []))
 (def new-game {:board (vec (range size)) :ongoing true :winner nil})
-(def new-players {:p1 {:token 'X} :p2 {:token 'O}})
 
-(defn make-game []
-	"TODO:  Complete validator - should be different for each type (TM)"
-	(let [game (atom (merge new-game new-players))]
+(defn new-player [token type]
+	{:token token :type type})
+
+(defn player-types [game-type]
+	(cond
+		(= game-type 0) [:manual :automatic]
+		(= game-type 1) [:manual :manual]
+		(= game-type 2) [:automatic :automatic]
+		:else [nil nil]))
+
+(defn new-players [type]
+	(let [[t1 t2] (player-types type)]
+		{:p1 (new-player 'X t1) :p2 (new-player 'O t2)}))
+
+(defn boolean? [value]
+	(or (false? value) (true? value)))
+
+(defn contains-keys? [map keys]
+	(every? (fn [key] (contains? map key)) keys))
+
+(defn game-valid? [game]
+	"TODO:  Test player validity"
+	(let [board (:board game)]
+		(and (map? game) (coll? board) (= size (count board))
+				 (boolean? (:ongoing game)) (contains-keys? game [:p1 :p2 :winner]))))
+
+(defn make-game [type]
+	(let [game (atom (merge new-game (new-players type)))]
 		(set-validator! game (fn [newval]
-													 (every? (fn [key] (contains? newval key))
-																	 [:board :p1 :p2])))
+													 (game-valid? newval)))
 		game))
 
-(defn setup-game []
-	@(make-game))
+(defn setup-game
+	([] (setup-game 1))
+	([type] @(make-game type)))
 
 (defn rows [board]
 	(partition 3 board))
@@ -60,8 +84,30 @@
 						 :winner (winner board)))
 		{}))
 
+(defn heterogeneous-players? [players]
+	(reduce not= (map :type players)))
+
+(defn homogeneous-players? [type players]
+	(every? (fn [player] (= type (:type player))) players))
+
+(defn extract-players [gm]
+	[(:p1 gm) (:p2 gm)])
+
+(defn game-type [gm]
+	(let [players (extract-players gm)]
+		(cond
+			(heterogeneous-players? players) 0
+			(homogeneous-players? :manual players) 1
+			(homogeneous-players? :automatic players) 2
+			:else nil)))
+
 (defn reset [game]
-	(swap! game (fn [oldval] (setup-game))))
+	"Not liking this"
+	(let [type (game-type @game)
+				gm (if type
+						 (setup-game type)
+						 (setup-game))]
+		(swap! game (fn [oldval] gm))))
 
 (defn make-move [game space]
 	(fn [] (move game space)))

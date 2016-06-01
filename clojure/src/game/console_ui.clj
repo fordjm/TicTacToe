@@ -16,7 +16,7 @@
 		(wrap-str
 			(string/join
 				(wrap-str "===+===+===" "\n")
-				(render-rows (partition 3 board)))
+				(render-rows (core/rows board)))
 			"\n")))
 
 (defn render-prompt [model]
@@ -35,23 +35,14 @@
 		(render-prompt model)
 		(render-result (:winner model))))
 
-(defn boolean? [value]
-	(or (false? value) (true? value)))
-
-(defn model-valid? [model]
-	"Not really a model if I'm passing back a value"
-	(let [board (:board model)]
-		(and (map? model) (coll? board) (= size (count board))
-				 (boolean? (:ongoing model)) (contains? model :winner))))
-
 (def game (atom {}))
 
-(defn move-view [model]
-	(if (model-valid? model)
+(defn move-view [gm]
+	(if (core/game-valid? gm)
 		(do
-			(swap! game (fn [oldval] model))
-			(println (str (render-board (:board model))
-										(render-status model))))
+			(swap! game (fn [oldval] gm))
+			(println (str (render-board (:board gm))
+										(render-status gm))))
 		nil))
 
 (defn handle-end [request]
