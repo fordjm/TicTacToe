@@ -75,9 +75,6 @@
 			;blocks-diagonal-winning-move
 			(creates-fork)
 			(advised-move-comes-from-set? offensive-fork-blocks (mini-game ['X 1 2 3 'O 5 6 7 'X] 'O 'X)) ;vulnerability - getting forked while playing
-			;temp
-			(should= 1 (advise (mini-game ['X 1 2 3 'O 5 6 7 'X] 'O 'X)))
-
 			(advised-move-comes-from-set? defensive-fork-blocks (mini-game x-takes-eight 'O 'X))
 			(returns-center-for-new-board)
 			(advised-move-comes-from-set? opposite-corners (mini-game ['X 'X 'O 3 'O 5 6 7 8] 'X 'O))

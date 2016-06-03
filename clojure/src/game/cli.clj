@@ -6,14 +6,18 @@
 						[clojure.tools.cli :refer [parse-opts]]))
 
 ;Depending directly on the core means I have no boundaries (unless values are the boundaries.)
-(def size board/size)
+(defn prompt-str [type]
+	(cond
+		(= :manual type) "Enter[0-8]:"
+		(= :automatic type) "Game Start"
+		:else nil))
 
 (defn render-rows [rows]
 	(for [idx (range (count rows))]
 		(str " " (string/join " " (string/join "|" (nth rows idx))))))
 
 (defn render-board [board]
-	"Clean me up"
+	"Clean me up (Use ->> ?)"
 	(let [wrap-str (fn [inner outer] (str outer inner outer))]
 		(wrap-str
 			(string/join
@@ -25,7 +29,7 @@
 	(let [space (:space model)]
 		(if space
 			(str (:token (:p2 model)) " chose " space)
-			"\nEnter[0-8]:")))
+			(prompt-str (:type (:p1 model))))))
 
 (defn render-result [winner]
 	(if winner
@@ -39,6 +43,10 @@
 
 (def game (atom {}))
 
+(defn exit-view [[msg fct]]
+	(println msg)
+	(fct))
+
 (defn move-view [gm]
 	(if (core/game-valid? gm)
 		(do
@@ -47,8 +55,9 @@
 										(render-status gm))))
 		nil))
 
-(defn handle-end [request]
-	(System/exit 0))
+(defn handle-exit [request]
+	[(:msg request)
+	 (fn [] (System/exit (:status request)))])
 
 (defn handle-automatic-move [request]
 	"Why not pass the whole request?"
@@ -62,7 +71,7 @@
 	(core/setup-game (:type request)))
 
 (def request-handlers
-	{"/end" {:controller handle-end}
+	{"/exit" {:controller handle-exit :view exit-view}
 	 "/automatic-move" {:controller handle-automatic-move :view move-view}
 	 "/manual-move" {:controller handle-manual-move :view move-view}
 	 "/setup" {:controller handle-setup :view move-view}})
@@ -73,6 +82,23 @@
 	(try
 		(Integer. value)
 		(catch NumberFormatException e nil)))
+
+(defn move-request [type]
+	(cond
+		(= :automatic type) {:path "/automatic-move"}
+		(= :manual type) {:path "/manual-move" :space (try-parse-int (read-line))}
+		:else nil))
+
+(defn exit-request [msg status]
+	{:path "/exit" :msg msg :status status})
+
+(defn run [request]
+	"Not so sure about this location"
+	(loop [request request]
+		(ui-instance request)
+		(if (:ongoing @game)
+			(recur (move-request (:type (:p1 @game))))          ;temporary hack?
+			(recur (exit-request "Goodbye!" 0)))))
 
 (defn strip-whitespace [str]
 	"Combined ideas from markhneedham.com/blog/2013/09/22/clojure-stripping-all-the-whitespace"
@@ -86,24 +112,41 @@
 	 ["-h" "--help"]])
 
 (defn parse-args
-	"TODO:  Check errors entry after returning"
 	([] (parse-args []))
 	([args] (let [clean-args (for [arg args]
 														 (strip-whitespace arg))]
 						(parse-opts clean-args cli-options))))
 
-(defn move-request [type]
-	(cond
-		(= :automatic type) {:path "/automatic-move"}
-		(= :manual type) {:path "/manual-move" :space (try-parse-int (read-line))}))
+(defn exit-from-setup-request [msg]
+	(exit-request msg 1))
 
-(defn run-game [args]
-	"Not so sure about this location, arg-parsing from tools.cli example"
-	(let [{:keys [options arguments errors summary]} (parse-args args)]
-		(loop [request {:path "/setup" :type (:type options)}]
-			(ui-instance request)
-			(if (:ongoing @game)
-				(recur (move-request (:type (:p1 @game))))          ;temporary hack
-				(recur {:path "/end"})))
-		)
-	)
+(defn usage [options-summary]
+	(->> ["Clojure Tic-Tac-Toe"
+				""
+				"Usage: lein run [options]"
+				""
+				"Options:"
+				options-summary
+				""
+				"Types:"
+				"  0    Human vs Computer"
+				"  1    Computer vs Human"
+				"  2    Human vs Human"
+				"  3    Computer vs Computer"
+				""
+				"Enter lein run -- -h for help."]
+			 (string/join \newline)))
+
+(defn error-msg [errors]
+	(str "The following errors occurred while parsing your command:\n\n"
+			 (string/join \newline errors)))
+
+(defn setup-game [args]
+	"Not so sure about this location either, arg-parsing from tools.cli example"
+	(let [{:keys [options arguments errors summary]} (parse-args args)
+				request (cond
+									(:help options) (exit-from-setup-request (usage summary))
+									(not (empty? arguments)) (exit-from-setup-request (usage summary))
+									errors (exit-from-setup-request (error-msg errors))
+									:else {:path "/setup" :type (:type options)})]
+		(run request)))

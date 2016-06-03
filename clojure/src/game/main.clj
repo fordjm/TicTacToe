@@ -2,4 +2,4 @@
 	(:require [game.cli :as ui]))
 
 (defn -main [& args]
-	(ui/run-game args))
+	(ui/setup-game args))

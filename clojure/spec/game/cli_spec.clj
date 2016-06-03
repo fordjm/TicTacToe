@@ -19,7 +19,6 @@
 													"\n===+===+===\n"
 													" 6 | 7 | 8"
 													"\n"))
-(def prompt-str "\nEnter[0-8]:")
 
 (defn player-takes-space [plr space]
 	(assoc board/empty-board space (:token plr)))
@@ -39,7 +38,7 @@
 
 (defn make-move-stub [game space]
 	(let [next (:p2 @game)]
-		(fn [] {:board (repeat size space) :p1 next :p2 (:p1 @game) :ongoing true :winner nil})))
+		(fn [] {:board (repeat board/size space) :p1 next :p2 (:p1 @game) :ongoing true :winner nil})))
 
 (defn execute-move-stub [move]
 	(move))
@@ -48,8 +47,6 @@
 	(rendering-move-outputs-result
 		move
 		(printed-line (str board status))))
-
-(def test-move-request {:path "/manual-move" :space "4"})
 
 (defn run-with-move-stubs [fct]
 	(with-redefs [core/make-move make-move-stub
@@ -122,7 +119,7 @@
 			(rendering-move-shows-board-and-status
 				(no-moves-model p1 p2)
 				empty-board-str
-				prompt-str))
+				(prompt-str (:type p1))))
 
 	(it "renders X moving to 4"
 			(rendering-move-shows-board-and-status
@@ -172,17 +169,17 @@
 			(should= "" (with-out-str (ui-instance {:path "/manual-move" :space "w"}))))
 
 	(it "tests ui-instance with start request"
-			(should= (printed-line (str empty-board-str prompt-str))
-							 (with-out-str (ui-instance {:path "/setup"}))))
+			(should= (printed-line (str empty-board-str (prompt-str :manual)))
+							 (with-out-str (ui-instance {:path "/setup" :type 0}))))
 
 	(it "tests ui-instance with move request"
-			(should= (printed-line (str (render-board (repeat size 4)) prompt-str))
+			(should= (printed-line (str (render-board (repeat board/size 4)) (prompt-str :automatic)))
 							 (with-out-str
 								 (run-with-move-stubs
-									 (fn [] (ui-instance test-move-request))))))
+									 (fn [] (ui-instance {:path "/manual-move" :space "4"}))))))
 
 	(it "tests ui-instance with end request - exits the tests"
-			;(should= 0 (ui-instance {:path "/end"}))
+			;(should= (usage summ) (with-out-str (ui-instance (exit-from-setup-request (usage summ)))))
 			)
 
 	(it "gets a human move request - not sure about these at all"
@@ -190,6 +187,5 @@
 							 (with-in-str "0" (move-request :manual))))
 
 	(it "gets a computer move request"
-			(should= {:path "/automatic-move"} (move-request :automatic))
-			)
+			(should= {:path "/automatic-move"} (move-request :automatic)))
 	)
