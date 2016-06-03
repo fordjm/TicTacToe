@@ -1,5 +1,5 @@
 (ns game.main
-	(:require [game.console-ui :as ui]))
+	(:require [game.cli :as ui]))
 
-(defn -main []
-	(ui/run-game))
+(defn -main [& args]
+	(ui/run-game args))

@@ -1,10 +1,9 @@
-(ns game.ui-spec
+(ns game.cli-spec
 	(:require [speclj.core :refer :all]
 						[game.ui :refer :all]
-						[game.console-ui :refer :all]
-						[game.core :as core]))
-
-(def empty-board (vec (range size)))
+						[game.cli :refer :all]
+						[game.core :as core]
+						[game.board :as board]))
 
 (defn rendering-move-outputs-result [move result]
 	(should= result (with-out-str (render move-view move))))
@@ -12,8 +11,7 @@
 (defn does-not-render-invalid-model [move]
 	(rendering-move-outputs-result move ""))
 
-;TODO:  Needs some players
-(defn no-moves-model [p1 p2] {:board empty-board :p1 p1 :p2 p2 :ongoing true :winner nil})
+(defn no-moves-model [p1 p2] {:board board/empty-board :p1 p1 :p2 p2 :ongoing true :winner nil})
 (def empty-board-str (str "\n"
 													" 0 | 1 | 2"
 													"\n===+===+===\n"
@@ -24,7 +22,7 @@
 (def prompt-str "\nEnter[0-8]:")
 
 (defn player-takes-space [plr space]
-	(assoc empty-board space (:token plr)))
+	(assoc board/empty-board space (:token plr)))
 
 (defn cats-game [p1 p2] [p1 p2 p1
 												 p1 p2 p2
@@ -40,8 +38,8 @@
 	(str line "\r\n"))
 
 (defn make-move-stub [game space]
-	(let [current (:p2 @game)]
-		(fn [] {:board (repeat size space) :p1 current :p2 (:p1 @game) :ongoing true :winner nil})))
+	(let [next (:p2 @game)]
+		(fn [] {:board (repeat size space) :p1 next :p2 (:p1 @game) :ongoing true :winner nil})))
 
 (defn execute-move-stub [move]
 	(move))
@@ -51,30 +49,74 @@
 		move
 		(printed-line (str board status))))
 
-(def test-move-request {:path "/move" :space "4"})
+(def test-move-request {:path "/manual-move" :space "4"})
 
 (defn run-with-move-stubs [fct]
 	(with-redefs [core/make-move make-move-stub
 								core/execute-move execute-move-stub]
 		(fct)))
 
+;START CLI-OPTIONS HELPER FUNCTIONS
+(def summ (str "  -t, --type TYPE  0  Game type\n"
+							 "  -h, --help"))
+
+(def default-args {:options {:type 0} :arguments [] :summary summ :errors nil})
+;END CLI-OPTIONS HELPER FUNCTIONS
+
 (describe "game.ui"
 	(before
-		(def gm (core/setup-game))
+		(def gm (core/setup-game 0))
 		(def p1 (:p1 gm))
 		(def p2 (:p2 gm)))
 
 	(it "does not plagiarize"
 			(should (give-credit)))
 
-	(it "does not render an invalid model"
+	(it "parses no arguments"
+			(should= default-args (parse-args)))
+
+	(it "parses non-option arguments as args"
+			(should= (assoc default-args :arguments ["foo"])
+							 (parse-args ["foo"])))
+
+	(it "parses the game type"
+			(should= (assoc default-args :options {:type 1})
+							 (parse-args ["-t 1"])))
+
+	(it "parses the game type with extra spaces"
+			(should= (assoc default-args :options {:type 3})
+							 (parse-args [" -t   3"])))
+
+	(it "screens invalid types - errors handled in example's (main)"
+			(should= (assoc default-args
+								 :errors ["Failed to validate \"-t 4\": Must be a number between 0 and 3"])
+							 (parse-args ["-t 4"])))
+
+	(it "handles missing option parameters"
+			(should= (assoc default-args :errors ["Missing required argument for \"-t TYPE\""])
+							 (parse-args ["-t"])))
+
+	(it "screens invalid type params"
+			(should= (assoc default-args
+								 :errors ["Error while parsing option \"-t w\": java.lang.NumberFormatException: For input string: \"w\""])
+							 (parse-args ["-t w"])))
+
+	(it "screens invalid options"
+			(should= (assoc default-args :errors ["Unknown option: \"-w\""])
+							 (parse-args ["-w"])))
+
+	(it "parses help - handled in example's (main)"
+			(should= (update-in default-args [:options] #(assoc % :help true))
+							 (parse-args ["-h"])))
+
+	(it "does not render an invalid model - improve me"
 			(does-not-render-invalid-model nil)
 			(does-not-render-invalid-model p1)
 			(does-not-render-invalid-model {})
 			(should= "" (with-out-str (render move-view {:board []})))
-			(does-not-render-invalid-model {:board empty-board})
-			(does-not-render-invalid-model {:board empty-board :ongoing nil})
-			(should= "" (with-out-str (render move-view {:board empty-board :ongoing false}))))
+			(does-not-render-invalid-model {:board board/empty-board})
+			(does-not-render-invalid-model {:board board/empty-board :ongoing nil})
+			(should= "" (with-out-str (render move-view {:board board/empty-board :ongoing false}))))
 
 	(it "renders no moves"
 			(rendering-move-shows-board-and-status
@@ -127,7 +169,7 @@
 										(render [] no-moves-model)))
 
 	(it "filters non-integer space input"
-			(should= "" (with-out-str (ui-instance {:path "/move" :space "w"}))))
+			(should= "" (with-out-str (ui-instance {:path "/manual-move" :space "w"}))))
 
 	(it "tests ui-instance with start request"
 			(should= (printed-line (str empty-board-str prompt-str))
@@ -141,5 +183,13 @@
 
 	(it "tests ui-instance with end request - exits the tests"
 			;(should= 0 (ui-instance {:path "/end"}))
+			)
+
+	(it "gets a human move request - not sure about these at all"
+			(should= {:path "/manual-move" :space 0}
+							 (with-in-str "0" (move-request :manual))))
+
+	(it "gets a computer move request"
+			(should= {:path "/automatic-move"} (move-request :automatic))
 			)
 	)

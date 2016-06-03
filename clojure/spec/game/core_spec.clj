@@ -1,8 +1,9 @@
 (ns game.core-spec
 	(:require [speclj.core :refer :all]
-						[game.core :refer :all]))
+						[game.core :refer :all]
+						[game.board :refer :all]
+						[game.coach :as coach]))
 
-(def empty-board (vec (range 9)))
 (def game (atom {}))
 
 (defn p1-takes-4 [p1 p2]
@@ -44,7 +45,8 @@
 	(should= type (:type plr)))
 
 (defn both-players-should-have-type [players type]
-	(map (fn [plr] (player-should-have-type plr type)) players))
+	(doall
+		(map (fn [plr] (player-should-have-type plr type)) players)))
 ; END GAME-TYPE HELPER FUNCTIONS
 
 (describe "game.core"
@@ -54,9 +56,6 @@
 		(def p1 (:p1 @game))
 		(def p2 (:p2 @game))
 		(def board-mkr (board-maker (:token p1) (:token p2))))
-
-	(it "creates a new game"
-			(should= (merge new-game {:p1 p1 :p2 p2}) (setup-game)))
 
 	(it "does not move out-of-bounds"
 			(should= {} (execute-move (make-move game -1)))
@@ -130,25 +129,35 @@
 				(make-move-response (board-mkr [0 1 5 6 2] [3 4 7 8]) 2 p2 p1 false p1))
 			(should-not (tie? (:board @game))))
 
+	(it "handles automatic moves - is this all? is this awful?"
+			(let [mini-gm (minify-game game)
+						result (move game)]
+				(should= (coach/advise mini-gm) (:space result))))
+
 	;START GAME-TYPE TESTS
-	(it "sets up a game with one human and one computer player - actual setup call is obscured"
+	(it "sets up a game with one human and one computer player"
 			(let [[p1 p2] (extract-players (setup-game 0))]
 				(player-should-have-type p1 :manual)
 				(player-should-have-type p2 :automatic)))
 
+	(it "sets up a game with one human and one computer player"
+			(let [[p1 p2] (extract-players (setup-game 1))]
+				(player-should-have-type p1 :automatic)
+				(player-should-have-type p2 :manual)))
+
 	(it "sets up a game with two human players"
 			(both-players-should-have-type
-				(extract-players (setup-game 1))
+				(extract-players (setup-game 2))
 				:manual))
 
 	(it "sets up a game with two computer players"
 			(both-players-should-have-type
-				(extract-players (setup-game 2))
+				(extract-players (setup-game 3))
 				:automatic))
 
 	(it "TODO:  Shouldn't be able to setup game with invalid players"
 			(both-players-should-have-type
-				(extract-players (setup-game 3))
+				(extract-players (setup-game 4))
 				nil))
 
 	(it "resets a game to the correct type"
