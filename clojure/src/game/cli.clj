@@ -3,7 +3,8 @@
 						[game.core :as core]
 						[game.board :as board]
 						[clojure.string :as string]
-						[clojure.tools.cli :refer [parse-opts]]))
+						[clojure.tools.cli :refer [parse-opts]])
+	(:import (javafx.fxml FXMLLoader$Attribute)))
 
 ;Depending directly on the core means I have no boundaries (unless values are the boundaries.)
 (defn prompt-str [type]
@@ -60,15 +61,15 @@
 	 (fn [] (System/exit (:status request)))])
 
 (defn handle-automatic-move [request]
-	"Why not pass the whole request?"
+	"Any reason to pass the whole request? (only has a path)"
 	(core/execute-move (core/make-move game)))
 
 (defn handle-manual-move [request]
-	"Why not pass the whole request?"
+	"Any reason to pass the whole request?"
 	(core/execute-move (core/make-move game (:space request))))
 
 (defn handle-setup [request]
-	(core/setup-game (:type request)))
+	(core/setup-game request))
 
 (def request-handlers
 	{"/exit" {:controller handle-exit :view exit-view}
@@ -80,7 +81,7 @@
 
 (defn try-parse-int [value]
 	(try
-		(Integer. value)
+		(Integer/parseInt value)
 		(catch NumberFormatException e nil)))
 
 (defn move-request [type]
@@ -97,8 +98,13 @@
 	(loop [request request]
 		(ui-instance request)
 		(if (:ongoing @game)
-			(recur (move-request (:type (:p1 @game))))          ;temporary hack?
-			(recur (exit-request "Goodbye!" 0)))))
+			(recur (move-request (:type (:p1 @game))))               ;temporary hack?
+			(recur (exit-request "Goodbye!" 0)))))                   ;temporary hack?
+
+(def parse-token #(symbol %))
+(def validate-token [#(and (not (nil? (re-find #"[\S&&[^0-9]]" (str %))))
+													 (= 1 (count (str %))))
+										 "Must be a non-numerical character"])
 
 (defn strip-whitespace [str]
 	"Combined ideas from markhneedham.com/blog/2013/09/22/clojure-stripping-all-the-whitespace"
@@ -108,7 +114,15 @@
 	[["-t" "--type TYPE" "Game type"
 		:default 0
 		:parse-fn #(Integer/parseInt %)
-		:validate [#(< 0 % 4) "Must be a number between 0 and 3"]]
+		:validate [#(< -1 % 4) "Must be a number between 0 and 3"]]
+	 ["-f" "--first TOKEN" "First player token"
+		:default 'X
+		:parse-fn parse-token
+		:validate validate-token]
+	 ["-s" "--second TOKEN" "Second player token"
+		:default 'O
+		:parse-fn parse-token
+		:validate validate-token]
 	 ["-h" "--help"]])
 
 (defn parse-args
@@ -148,5 +162,5 @@
 									(:help options) (exit-from-setup-request (usage summary))
 									(not (empty? arguments)) (exit-from-setup-request (usage summary))
 									errors (exit-from-setup-request (error-msg errors))
-									:else {:path "/setup" :type (:type options)})]
+									:else {:path "/setup" :type (:type options) :t1 (:first options) :t2 (:second options)})]
 		(run request)))

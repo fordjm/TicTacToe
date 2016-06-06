@@ -4,7 +4,7 @@
 						[game.board :refer :all]
 						[game.coach :as coach]))
 
-(def game (atom {}))
+(def game (atom (setup-game {:type 0 :t1 'X :t2 'O})))
 
 (defn p1-takes-4 [p1 p2]
 	{:board (assoc empty-board 4 (:token p1)) :space 4 :p1 p2 :p2 p1 :ongoing true :winner nil})
@@ -40,14 +40,17 @@
 	"TODO:  Refactor!"
 	{:board board :space space :p1 p1 :p2 p2 :ongoing ongoing :winner (:token winner)})
 
-; START GAME-TYPE HELPER FUNCTIONS
+; START SETUP HELPER FUNCTIONS
+(defn default-request-with-type [type]
+	{:type type :t1 'X :t2 'O})
+
 (defn player-should-have-type [plr type]
 	(should= type (:type plr)))
 
 (defn both-players-should-have-type [players type]
 	(doall
 		(map (fn [plr] (player-should-have-type plr type)) players)))
-; END GAME-TYPE HELPER FUNCTIONS
+; END SETUP HELPER FUNCTIONS
 
 (describe "game.core"
 	(before
@@ -134,35 +137,50 @@
 						result (move game)]
 				(should= (coach/advise mini-gm) (:space result))))
 
-	;START GAME-TYPE TESTS
+	;START SETUP TESTS
 	(it "sets up a game with one human and one computer player"
-			(let [[p1 p2] (extract-players (setup-game 0))]
+			(let [[p1 p2] (extract-players (setup-game (default-request-with-type 0)))]
 				(player-should-have-type p1 :manual)
 				(player-should-have-type p2 :automatic)))
 
 	(it "sets up a game with one human and one computer player"
-			(let [[p1 p2] (extract-players (setup-game 1))]
+			(let [[p1 p2] (extract-players (setup-game (default-request-with-type 1)))]
 				(player-should-have-type p1 :automatic)
 				(player-should-have-type p2 :manual)))
 
 	(it "sets up a game with two human players"
 			(both-players-should-have-type
-				(extract-players (setup-game 2))
+				(extract-players (setup-game (default-request-with-type 2)))
 				:manual))
 
 	(it "sets up a game with two computer players"
 			(both-players-should-have-type
-				(extract-players (setup-game 3))
+				(extract-players (setup-game (default-request-with-type 3)))
 				:automatic))
 
 	(it "TODO:  Shouldn't be able to setup game with invalid players"
-			(both-players-should-have-type
-				(extract-players (setup-game 4))
-				nil))
+			(should-throw IllegalStateException
+										(setup-game (default-request-with-type 4))))
 
-	(it "resets a game to the correct type"
-			(for [type [0 1 2]]
-				(let [gm (atom (setup-game type))]
-					(should= type (game-type (reset gm))))))
-	;END GAME-TYPE TESTS
+	(it "resets a game to the correct type after 0 moves"
+			(doall
+				(for [type [0 1 2 3]]
+					(let [gm (atom (setup-game (default-request-with-type type)))]
+						(should= type (game-type (reset gm)))))))
+
+	(it "resets a game to the correct type after 1 move"
+			(doall
+				(for [type [0 1 2 3]]
+					(let [gm (atom (setup-game (default-request-with-type type)))]
+						(move gm 0)
+						(should= type (game-type (reset gm)))))))
+
+	(it "sets player tokens to P and Q"
+			(let [gm (setup-game {:type 0 :t1 'P :t2 'Q})]
+				(should= 'P (:token (:p1 gm)))
+				(should= 'Q (:token (:p2 gm)))))
+
+	(it "does not set duplicate tokens"
+			(should-throw Error "Duplicate tokens: P & P" (setup-game {:type 0 :t1 'P :t2 'P})))
+	;END SETUP TESTS
 	)
