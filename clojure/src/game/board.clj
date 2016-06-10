@@ -7,7 +7,7 @@
 (def empty-board (vec (range size)))
 
 (defn rows [board]
-	(partition 3 board))
+	(partition (int (Math/sqrt size)) board))
 
 (defn cols [board]
 	(apply map vector (rows board)))
@@ -38,3 +38,6 @@
 (defn winner [board]
 	(some (fn [coll] (if (= 1 (count (distinct coll))) (first coll)))
 				(sections board)))
+
+(defn selectable? [board space]
+	(integer? (nth board space)))

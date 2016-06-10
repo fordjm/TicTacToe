@@ -12,6 +12,7 @@
 	(rendering-move-outputs-result move ""))
 
 (defn no-moves-model [p1 p2] {:board board/empty-board :p1 p1 :p2 p2 :ongoing true :winner nil})
+
 (def empty-board-str (str "\n"
 													" 0 | 1 | 2"
 													"\n===+===+===\n"
@@ -83,8 +84,7 @@
 
 	(it "parses the game type"
 			(should= (update-in default-args [:options] #(assoc % :type 0))
-							 (parse-args ["-t 0"]))
-			)
+							 (parse-args ["-t 0"])))
 
 	(it "parses the game type with extra spaces"
 			(should= (update-in default-args [:options] #(assoc % :type 3))
@@ -130,8 +130,7 @@
 							 (parse-args ["-s 8"]))
 			(should= (assoc default-args
 								 :errors ["Failed to validate \"-f XO\": Must be a non-numerical character"])
-							 (parse-args ["-f XO"]))
-			)
+							 (parse-args ["-f XO"])))
 	; END PARSER TESTS
 
 	(it "does not render an invalid model - improve me"
@@ -197,9 +196,9 @@
 	(it "filters non-integer space input"
 			(should= "" (with-out-str (ui-instance {:path "/manual-move" :space "w"}))))
 
-	(it "tests ui-instance with start request"
+	(it "tests ui-instance with setup request"
 			(should= (printed-line (str empty-board-str (prompt-str :manual)))
-							 (with-out-str (ui-instance {:path "/setup" :type 0 :t1 'X :t2 'O}))))
+							 (with-out-str (ui-instance setup-req))))
 
 	(it "tests ui-instance with move request"
 			(should= (printed-line (str (render-board (repeat board/size 4)) (prompt-str :automatic)))
@@ -207,11 +206,11 @@
 								 (run-with-move-stubs
 									 (fn [] (ui-instance {:path "/manual-move" :space "4"}))))))
 
-	(it "tests ui-instance with end request - exits the tests"
+	(it "tests ui-instance with exit request - exits the tests"
 			;(should= (usage summ) (with-out-str (ui-instance (exit-from-setup-request (usage summ)))))
 			)
 
-	(it "gets a human move request - not sure about these at all"
+	(it "gets a human move request - not sure these should exist"
 			(should= {:path "/manual-move" :space 0}
 							 (with-in-str "0" (move-request :manual))))
 

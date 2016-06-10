@@ -3,8 +3,7 @@
 						[game.core :as core]
 						[game.board :as board]
 						[clojure.string :as string]
-						[clojure.tools.cli :refer [parse-opts]])
-	(:import (javafx.fxml FXMLLoader$Attribute)))
+						[clojure.tools.cli :refer [parse-opts]]))
 
 ;Depending directly on the core means I have no boundaries (unless values are the boundaries.)
 (defn prompt-str [type]
@@ -155,6 +154,9 @@
 	(str "The following errors occurred while parsing your command:\n\n"
 			 (string/join \newline errors)))
 
+(defn setup-request [type t1 t2]
+	{:path "/setup" :type type :t1 t1 :t2 t2})
+
 (defn setup-game [args]
 	"Not so sure about this location either, arg-parsing from tools.cli example"
 	(let [{:keys [options arguments errors summary]} (parse-args args)
@@ -162,5 +164,5 @@
 									(:help options) (exit-from-setup-request (usage summary))
 									(not (empty? arguments)) (exit-from-setup-request (usage summary))
 									errors (exit-from-setup-request (error-msg errors))
-									:else {:path "/setup" :type (:type options) :t1 (:first options) :t2 (:second options)})]
+									:else (setup-request (:type options) (:first options) (:second options)))]
 		(run request)))

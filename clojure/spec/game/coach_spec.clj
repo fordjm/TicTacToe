@@ -1,98 +1,145 @@
 (ns game.coach-spec
 	(:require [speclj.core :refer :all]
 						[game.coach :refer :all]
-						[game.board :refer :all]))
+						[game.board :refer :all])
+	(:import (javafx.fxml FXMLLoader$Attribute)))
 
-(def new-gm (mini-game empty-board 'X 'O))
+(def new-gm (make-game empty-board 'X 'O))
+(def x4-board (assoc empty-board 4 'X))
+(def x4-o0-board (assoc x4-board 0 'O))
+(def x4-o0-x1-board (assoc x4-o0-board 1 'X))
+(def x4-o0-x2-board (assoc x4-o0-board 2 'X))
+(def x2-o4-x1-board (assoc empty-board 2 'X 4 'O 1 'X))
 
-(def x-takes-four
-	(assoc empty-board center 'X))
+(defn move-does-not-create-threat [move game]
+	(let [board (:board game)
+				p1 (:p1 game)]
+		(should-not (has-threat? board p1))
+		(should-not (has-threat? (assoc board move p1) p1))))
 
-(def o-takes-zero
-	(assoc x-takes-four 0 'O))
+(defn move-creates-threat [move game]
+	(let [before (:board game)
+				p1 (:p1 game)
+				after (assoc before move p1)]
+		(should-not (has-threat? before p1))
+		(should (has-threat? after p1))))
 
-(def x-takes-eight
-	(assoc o-takes-zero 8 'X))
+(defn move-blocks-opponent-win [move game]
+	(let [before (:board game)
+				p2 (:p2 game)
+				after (assoc before move (:p1 game))]
+		(should (has-threat? before p2))
+		(should-not (has-threat? after p2))))
 
-(def o-takes-two
-	(assoc x-takes-eight 2 'O))
+(defn blocking-threat-prevents-fork [move game]
+	(let [before (assoc (:board game) move (:p1 game))
+				p2 (:p2 game)
+				threat (first (threats before (:p1 game)))
+				after (assoc before threat (:p2 game))]
+		(has-threat? before (:p1 game))
+		(should-not (has-fork? after p2))))
 
-(def x-takes-one
-	(assoc o-takes-two 1 'X))
-
-(def o-takes-seven
-	(assoc x-takes-one 7 'O))
-
-(def x-takes-six
-	(assoc o-takes-seven 6 'X))
-
-(def x-fork-available
-	['X 1 2
-	 3 'O 5
-	 'O 7 'X])
-
-(defn returns-center-for-new-board []
-	(should= center (advise new-gm)))
-
-(defn returns-empty-corner-when-center-occupied []
-	(should (corners (advise (mini-game x-takes-four 'O 'X)))))
-
-(defn advised-move-comes-from-set? [fct game]
-	(let [result ((set (fct game))
-								 (advise game))]
-		(false? (nil? result))))
-
-(defn advised-move-blocks-win? [game]
-	(advised-move-comes-from-set? blocking-moves game))
-
-(defn blocks-horizontal-winning-move []
-	(should= true (advised-move-blocks-win? (mini-game o-takes-two 'X 'O))))
-
-(defn blocks-vertical-winning-move []
-	(should= true (advised-move-blocks-win? (mini-game x-takes-one 'O 'X))))
-
-(defn returns-side-as-last-resort []
-	(should (sides (advise (mini-game x-takes-six 'O 'X)))))
-
-(defn creates-fork []
-	(should= true (advised-move-comes-from-set? forking-moves (mini-game x-fork-available 'X 'O))))
-
-(def x-created-fork
-	(assoc x-fork-available 2 'X))
-
-(defn advises-winning-move []
-	(should= true (advised-move-comes-from-set? winning-moves (mini-game x-created-fork 'X 'O))))
-
-(defn returns-center-when-only-corner-occupied []
-	(let [x-takes-zero (assoc empty-board 0 'X)]
-		(should= center (advise (mini-game x-takes-zero 'O 'X)))))
+(defn move-creates-fork [move game]
+	(let [before (:board game)
+				p1 (:p1 game)
+				after (assoc before move p1)]
+		(should-not (has-fork? before p1))
+		(should (has-fork? after p1))))
 
 (describe "game.coach"
-	(it "tests advise"
-			(advises-winning-move)
-			(blocks-horizontal-winning-move)
-			(blocks-vertical-winning-move)
-			;blocks-diagonal-winning-move
-			(creates-fork)
-			(advised-move-comes-from-set? offensive-fork-blocks (mini-game ['X 1 2 3 'O 5 6 7 'X] 'O 'X)) ;vulnerability - getting forked while playing
-			(advised-move-comes-from-set? defensive-fork-blocks (mini-game x-takes-eight 'O 'X))
-			(returns-center-for-new-board)
-			(advised-move-comes-from-set? opposite-corners (mini-game ['X 'X 'O 3 'O 5 6 7 8] 'X 'O))
-			(returns-empty-corner-when-center-occupied)
-			(returns-side-as-last-resort)
-			(returns-center-when-only-corner-occupied)
-			;(should= nil (advise ['O 'X 2 3 'X 5 6 'O 8] 'X))
-			(should (advised-move-comes-from-set? offensive-fork-blocks (mini-game ['O 'X 2 3 'X 5 6 'O 8] 'X 'O)))
-			)
+	(it "handles nulls" (should= nil (advise nil)))
+	(it "takes center when board is empty"
+			(let [gm new-gm
+						move (advise gm)]
+				(should= center move)
+				(move-does-not-create-threat move gm)))
+	(it "takes a corner when center is taken"
+			(let [gm (make-game x4-board 'O 'X)
+						move (advise gm)]
+				(should (contains? corners move))
+				(move-does-not-create-threat move gm)))
+	(it "takes an opposite corner"
+			(let [board x4-o0-board
+						gm (make-game board 'X 'O)]
+				(should (contains? (opposite-corners gm) (advise gm)))))
+	(it "takes an empty side"
+			(let [board (assoc x4-o0-board 6 'X 2 'O 1 'X 7 'O 8 'X)
+						gm (make-game board 'O 'X)]
+				(should (contains? sides (advise gm)))))
+	(it "blocks a second column win"
+			(let [gm (make-game x4-o0-x1-board 'O 'X)
+						move (advise gm)]
+				(move-blocks-opponent-win move gm)
+				(move-does-not-create-threat move gm)))
+	(it "blocks a second row win"
+			(let [board (assoc x4-o0-board 5 'X)
+						gm (make-game board 'O 'X)
+						move (advise gm)]
+				(move-blocks-opponent-win move gm)
+				(move-creates-threat move gm)))
+	(it "blocks a second diagonal win"
+			(let [board x4-o0-x2-board
+						gm (make-game board 'O 'X)
+						move (advise gm)]
+				(move-blocks-opponent-win move gm)
+				(move-creates-threat move gm)))
+	(it "blocks a first column win"
+			(let [gm (make-game (assoc x4-o0-x2-board 6 'O) 'X 'O)
+						move (advise gm)]
+				(move-blocks-opponent-win move gm)
+				(move-creates-threat move gm)))
+	(it "blocks a first row win"
+			(let [gm (make-game x2-o4-x1-board 'O 'X)
+						move (advise gm)]
+				(move-blocks-opponent-win move gm)
+				(move-creates-threat move gm)))
+	(it "blocks a first diagonal win"
+			(let [gm (make-game (assoc x2-o4-x1-board 0 'O) 'X 'O)
+						move (advise gm)]
+				(move-blocks-opponent-win move gm)
+				(move-creates-threat move gm)))
+	(it "blocks a third row win"
+			(let [gm (make-game (assoc empty-board 8 'X 4 'O 7 'X) 'O 'X)
+						move (advise gm)]
+				(move-blocks-opponent-win move gm)
+				(move-creates-threat move gm)))
+	(it "makes a winning move"
+			(let [board (assoc x2-o4-x1-board 5 'O)
+						gm (make-game board 'X 'O)
+						move (advise gm)]
+				(should= (:p1 gm) (winner (assoc board move 'X)))))
+	(it "creates a fork for X"
+			(let [board (assoc empty-board 0 'X 1 'O 7 'X 5 'O)
+						gm (make-game board 'X 'O)
+						move (advise gm)]
+				(move-creates-fork move gm)))
+	(it "creates a fork for O"
+			(let [board (assoc empty-board 0 'O 4 'X 8 'O 2 'X)
+						gm (make-game board 'O 'X)
+						move (advise gm)]
+				(move-creates-fork move gm)))
+	(it "prevents a fork by forcing a block elsewhere A"
+			(let [board (assoc empty-board 0 'X 4 'O 8 'X)
+						gm (make-game board 'O 'X)
+						move (advise gm)]
+				(move-creates-threat move gm)
+				(blocking-threat-prevents-fork move gm)))
+	(it "prevents a fork by forcing a block elsewhere B"
+			(let [board (assoc empty-board 4 'X 0 'O 8 'X)
+						gm (make-game board 'O 'X)
+						move (advise gm)]
+				(move-creates-threat move gm)
+				(blocking-threat-prevents-fork move gm)))
+	(it "prevents a fork by moving to intersection space"
+			(let [board (assoc empty-board 2 'X 5 'O 3 'X)
+						gm (make-game board 'O 'X)
+						move (advise gm)]
+				(should-not (create-fork (make-game (assoc board move (:p1 gm)) (:p2 gm) (:p1 gm))))))
 
-	(it "passes likely-redundant tests moved from core_spec"
-			(should= 4 (advise new-gm))
-
-			(should= 5 (advise (mini-game ['X 1 'X 'O 'O 5 6 7 'X] 'O 'X)))
-			(should= 2 (advise (mini-game ['O 1 2 'X 'X 'O 'X 7 8]
-																		'O 'X)))
-			(should= 0 (advise (mini-game [0 'X 2 3 'O 'X 'X 7 'O]
-																		'O 'X)))
-			(should= 6 (advise (mini-game ['O 'O 'X 'O 'X 'X 6 'X 8]
-																		'O 'X))))
+	(it "tests opposite-corners - work into game situations?"
+			(should= #{} (opposite-corners new-gm))
+			(for [[p1 p2] [['X 'O] ['O 'X]]]
+				(should= (for [opposite (reverse (sort corners))] #{opposite})
+								 (for [corner (sort corners)]
+									 (opposite-corners (make-game (assoc empty-board corner p1) p2 p1))))))
 	)

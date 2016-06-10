@@ -1,70 +1,69 @@
 (ns game.coach
 	(:require [game.board :refer :all]))
 
-(defn mini-move [game idx]
-	(assoc (:board game) idx (:p1 game)))
-
-(defn mini-game [board p1 p2]
+(defn make-game [board p1 p2]
 	{:board board :p1 p1 :p2 p2})
 
-(defn winning-moves [game]
-	(filter (fn [idx] (win? (mini-move game idx))) (available (:board game))))
-
-(defn blocking-moves [game]
-	(winning-moves (mini-game (:board game) (:p2 game) (:p1 game))))
-
-(defn threat? [candidate token]
-	(letfn [(matches [coll char]
-						(filter (fn [x] (= char x)) coll))]
-		(and
-			(= 1 (count (available candidate)))
-			(= 2 (count (matches candidate token))))))
-
 (defn threats [board token]
-	(filter (fn [section] (threat? section token)) (sections board)))
+	(filter (fn [space] (win? (assoc board space token))) (available board)))
 
-(defn forking-moves [game]
-	(letfn [(fork? [game]
-						(true? (< 1 (count (threats (:board game) (:p2 game))))))]
-		(filter (fn [idx] (fork? (mini-game (mini-move game idx) (:p2 game) (:p1 game))))
-						(available (:board game)))))
+(defn has-threat? [board token]
+	(not (empty? (threats board token))))
 
-(defn defensive-fork-blocks [game]
-	(forking-moves (mini-game (:board game) (:p2 game) (:p1 game))))
+(defn win-game [game]
+	(some identity (threats (:board game) (:p1 game))))
 
-(defn available-threats [board token]
-	(filter (fn [idx] (true? (< 0 (count (threats (assoc board idx token) token))))) (available board)))
+(defn block-win [game]
+	(some identity (threats (:board game) (:p2 game))))
 
-(defn offensive-fork-blocks [game]
-	(remove (fn [idx] (corners idx)) (available-threats (:board game) (:p1 game))))
+(defn has-fork? [board token]
+	"TODO:  Refactor"
+	(< 1 (count (filter (fn [section]
+												(and (= 2 (count (filter (fn [space] (= token space)) section)))
+														 (= 1 (count (filter (fn [space] (integer? space)) section)))))
+										(sections board)))))
 
-(defn fork-blocks [game]
-	(concat (offensive-fork-blocks game) (defensive-fork-blocks game)))
+(defn create-fork [game]
+	(let [board (:board game)
+				p1 (:p1 game)]
+		(some identity (filter (fn [space]
+														 (has-fork? (assoc board space p1) p1)) (available board)))))
+
+(defn swap-players [game]
+	(make-game (:board game) (:p2 game) (:p1 game)))
+
+(defn update-game [game space]
+	(let [newboard (assoc (:board game) space (:p1 game))]
+		(assoc (swap-players game) :board newboard)))
+
+(defn create-threats [game]
+	(let [board (:board game)
+				p1 (:p1 game)]
+		(filter (fn [space] (has-threat? (assoc board space p1) p1)) (available board))))
+
+(defn block-fork [game]
+	(let [fork (create-fork (swap-players game))]
+		(if fork
+			(let [threat (some #(and (not= fork (block-win (update-game game %))) %)
+												 (create-threats game))]
+				(if threat
+					threat
+					fork)))))
 
 (defn opposite-corners [game]
-	(let [opposites {0 8, 2 6, 6 2, 8 0}
-				opponent (:p2 game)
-				to-oppose (filter (fn [idx] (= opponent (nth (:board game) idx))) corners)]
-		(for [corner to-oppose] (get opposites corner))))
-
-(defn selectable? [spaces idx]
-	(contains? (set (available spaces)) idx))
+	(let [to-oppose (filter (fn [corner] (= (:p2 game) (nth (:board game) corner))) corners)]
+		(set (for [corner to-oppose]
+					 (get {0 8, 2 6, 6 2, 8 0} corner)))))
 
 (defn best-by-position [game]
-	(filter (fn [idx] (selectable? (:board game) idx))
-					(flatten [center
-										(opposite-corners game)
-										(seq corners)
-										(seq sides)])))
-
-(defn prioritized-moves [game]
-	(flatten [(winning-moves game)
-						(blocking-moves game)
-						(forking-moves game)
-						(fork-blocks game)
-						(best-by-position game)]))
+	(some identity (filter (fn [space] (selectable? (:board game) space))
+												 (cons center (concat (opposite-corners game) corners sides)))))
 
 (defn advise [game]
-	(if (nil? game)
-		nil
-		(some identity (prioritized-moves game))))
+	"Chooses best available move in Newell and Simon priority order - TODO:  apply list of functions to game?"
+	(some identity
+				(list (win-game game)
+							(block-win game)
+							(create-fork game)
+							(block-fork game)
+							(best-by-position game))))
