@@ -10,7 +10,6 @@
 	{:board (assoc empty-board 4 (:token p1)) :space 4 :p1 p2 :p2 p1 :ongoing true :winner nil})
 
 (defn make-board-state [p1-moves p2-moves t1 t2]
-	"How to refactor place-tokens? (Doesn't preserve move order anyway.)"
 	(let [place-tokens (fn [board spaces token]
 											(vec (reduce (fn [board idx] (assoc board idx token))
 																	 board spaces)))]
@@ -37,7 +36,6 @@
 	(fn [p1-moves p2-moves] (make-board-state p1-moves p2-moves t1 t2)))
 
 (defn make-move-response [board space p1 p2 ongoing winner]
-	"TODO:  Refactor!"
 	{:board board :space space :p1 p1 :p2 p2 :ongoing ongoing :winner (:token winner)})
 
 ; START SETUP HELPER FUNCTIONS
@@ -135,9 +133,7 @@
 	(it "handles automatic moves - is this all?"
 			(let [mini-gm (minify-game game)
 						result (move game)]
-				;(should= (coach/advise mini-gm) (:space result))
-				)
-			)
+				(should= (coach/choose-move mini-gm) (:space result))))
 
 	;START SETUP TESTS
 	(it "sets up a game with one human and one computer player"
@@ -160,7 +156,7 @@
 				(extract-players (setup-game (setup-request-with-type 3)))
 				:automatic))
 
-	(it "TODO:  Shouldn't be able to setup game with invalid players"
+	(it "throws an exception on invalid type"
 			(should-throw IllegalStateException
 										(setup-game (setup-request-with-type 4))))
 

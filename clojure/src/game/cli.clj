@@ -5,7 +5,6 @@
 						[clojure.string :as string]
 						[clojure.tools.cli :refer [parse-opts]]))
 
-;Depending directly on the core means I have no boundaries (unless values are the boundaries.)
 (defn prompt-str [type]
 	(cond
 		(= :manual type) "Enter[0-8]:"
@@ -17,7 +16,6 @@
 		(str " " (string/join " " (string/join "|" (nth rows idx))))))
 
 (defn render-board [board]
-	"Clean me up (Use ->> ?)"
 	(let [wrap-str (fn [inner outer] (str outer inner outer))]
 		(wrap-str
 			(string/join
@@ -60,11 +58,9 @@
 	 (fn [] (System/exit (:status request)))])
 
 (defn handle-automatic-move [request]
-	"Any reason to pass the whole request? (only has a path)"
 	(core/execute-move (core/make-move game)))
 
 (defn handle-manual-move [request]
-	"Any reason to pass the whole request?"
 	(core/execute-move (core/make-move game (:space request))))
 
 (defn handle-setup [request]
@@ -93,12 +89,11 @@
 	{:path "/exit" :msg msg :status status})
 
 (defn run [request]
-	"Not so sure about this location"
 	(loop [request request]
 		(ui-instance request)
 		(if (:ongoing @game)
-			(recur (move-request (:type (:p1 @game))))               ;temporary hack?
-			(recur (exit-request "Goodbye!" 0)))))                   ;temporary hack?
+			(recur (move-request (:type (:p1 @game))))
+			(recur (exit-request "Goodbye!" 0)))))
 
 (def parse-token #(symbol %))
 (def validate-token [#(and (not (nil? (re-find #"[\S&&[^0-9]]" (str %))))
@@ -158,7 +153,7 @@
 	{:path "/setup" :type type :t1 t1 :t2 t2})
 
 (defn setup-game [args]
-	"Not so sure about this location either, arg-parsing from tools.cli example"
+	"Arg-parsing from tools.cli example"
 	(let [{:keys [options arguments errors summary]} (parse-args args)
 				request (cond
 									(:help options) (exit-from-setup-request (usage summary))

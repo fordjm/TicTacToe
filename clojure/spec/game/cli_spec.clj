@@ -133,15 +133,13 @@
 							 (parse-args ["-f XO"])))
 	; END PARSER TESTS
 
-	(it "does not render an invalid model - improve me"
+	(it "does not render an invalid model"
 			(does-not-render-invalid-model nil)
 			(does-not-render-invalid-model p1)
 			(does-not-render-invalid-model {})
 			(should= "" (with-out-str (render move-view {:board []})))
 			(does-not-render-invalid-model {:board board/empty-board})
-			(does-not-render-invalid-model {:board board/empty-board :ongoing nil})
-			;(should= "" (with-out-str (render move-view {:board board/empty-board :ongoing false})))
-			)
+			(does-not-render-invalid-model {:board board/empty-board :ongoing nil}))
 
 	(it "renders no moves"
 			(rendering-move-shows-board-and-status

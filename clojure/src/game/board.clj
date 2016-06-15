@@ -3,6 +3,7 @@
 (def size 9)
 (def center 4)
 (def corners #{0 2 6 8})
+(def opposites {0 8, 2 6, 6 2, 8 0})
 (def sides #{1 3 5 7})
 (def empty-board (vec (range size)))
 
@@ -13,7 +14,6 @@
 	(apply map vector (rows board)))
 
 (defn diags [board]
-	"Doesn't read well"
 	(for [outer [(rows board) (reverse (cols board))]]
 		(for [inner (range (count outer))]
 			(nth (nth outer inner) inner))))

@@ -18,7 +18,6 @@
 		:else [nil nil]))
 
 (defn make-players [request]
-	"TODO:  Fail gracefully"
 	(if (= (:t1 request) (:t2 request))
 		(throw (Error. (str "Duplicate tokens: " (:t1 request) " & " (:t2 request)))))
 	(let [[tp1 tp2] (player-types (:type request))]
@@ -53,7 +52,7 @@
 		{:board (:board gameval) :p1 (:token p1val) :p2 (:token p2val)}))
 
 (defn move
-	([game] (move game (coach/advise (minify-game game))))
+	([game] (move game (coach/choose-move (minify-game game))))
 	([game space] (if (contains? (set (:board @game)) space)
 									(let [p1 (:p1 @game)
 												board (assoc (:board @game) space (:token p1))]
@@ -85,7 +84,6 @@
 	(some (fn [player] (if (= 0 (:position player)) player)) players))
 
 (defn game-type [game]
-	"Not thrilled with this"
 	(let [players (extract-players game)
 				p1 (first-player players)]
 		(cond

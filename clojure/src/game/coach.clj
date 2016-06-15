@@ -17,7 +17,6 @@
 	(some identity (threats (:board game) (:p2 game))))
 
 (defn has-fork? [board token]
-	"TODO:  Refactor"
 	(< 1 (count (filter (fn [section]
 												(and (= 2 (count (filter (fn [space] (= token space)) section)))
 														 (= 1 (count (filter (fn [space] (integer? space)) section)))))
@@ -53,14 +52,14 @@
 (defn opposite-corners [game]
 	(let [to-oppose (filter (fn [corner] (= (:p2 game) (nth (:board game) corner))) corners)]
 		(set (for [corner to-oppose]
-					 (get {0 8, 2 6, 6 2, 8 0} corner)))))
+					 (get opposites corner)))))
 
 (defn best-by-position [game]
 	(some identity (filter (fn [space] (selectable? (:board game) space))
 												 (cons center (concat (opposite-corners game) corners sides)))))
 
-(defn advise [game]
-	"Chooses best available move in Newell and Simon priority order - TODO:  apply list of functions to game?"
+(defn choose-move [game]
+	"Chooses best available move in Newell and Simon priority order"
 	(some identity
 				(list (win-game game)
 							(block-win game)
