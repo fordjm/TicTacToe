@@ -60,7 +60,7 @@
 
 	(it "does not move out-of-bounds"
 			(should= {} (execute-move (make-move game -1)))
-			(should= {} (execute-move (make-move game 9))))
+			(should= {} (execute-move (make-move game size))))
 
 	(it "executes a legal move"
 			(should= (p1-takes-4 p1 p2) (execute-move (make-move game 4))))

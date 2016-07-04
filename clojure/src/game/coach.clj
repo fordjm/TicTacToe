@@ -18,7 +18,7 @@
 
 (defn has-fork? [board token]
 	(< 1 (count (filter (fn [section]
-												(and (= 2 (count (filter (fn [space] (= token space)) section)))
+												(and (= (dec row-size) (count (filter (fn [space] (= token space)) section)))
 														 (= 1 (count (filter (fn [space] (integer? space)) section)))))
 										(sections board)))))
 

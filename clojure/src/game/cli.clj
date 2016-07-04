@@ -7,7 +7,7 @@
 
 (defn prompt-str [type]
 	(cond
-		(= :manual type) "Enter[0-8]:"
+		(= :manual type) (str "Enter[0-" (dec board/size) "]:")
 		(= :automatic type) "Game Start"
 		:else nil))
 
@@ -15,13 +15,20 @@
 	(for [idx (range (count rows))]
 		(str " " (string/join " " (string/join "|" (nth rows idx))))))
 
+(defn wrap-str [inner outer]
+	(str outer inner outer))
+
+(defn render-divider []
+	(wrap-str
+		(apply str (interpose "+" (repeat board/row-size "===")))
+		"\n"))
+
 (defn render-board [board]
-	(let [wrap-str (fn [inner outer] (str outer inner outer))]
-		(wrap-str
-			(string/join
-				(wrap-str "===+===+===" "\n")
-				(render-rows (board/rows board)))
-			"\n")))
+	(wrap-str
+		(string/join
+			(render-divider)
+			(render-rows (board/rows board)))
+		"\n"))
 
 (defn render-prompt [model]
 	(let [space (:space model)]

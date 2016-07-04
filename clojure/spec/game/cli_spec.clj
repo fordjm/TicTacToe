@@ -11,7 +11,8 @@
 (defn does-not-render-invalid-model [move]
 	(rendering-move-outputs-result move ""))
 
-(defn no-moves-model [p1 p2] {:board board/empty-board :p1 p1 :p2 p2 :ongoing true :winner nil})
+(defn no-moves-model [p1 p2]
+	{:board board/empty-board :p1 p1 :p2 p2 :ongoing true :winner nil})
 
 (def empty-board-str (str "\n"
 													" 0 | 1 | 2"

@@ -5,10 +5,11 @@
 (def corners #{0 2 6 8})
 (def opposites {0 8, 2 6, 6 2, 8 0})
 (def sides #{1 3 5 7})
+(def row-size (int (Math/sqrt size)))
 (def empty-board (vec (range size)))
 
 (defn rows [board]
-	(partition (int (Math/sqrt size)) board))
+	(partition row-size board))
 
 (defn cols [board]
 	(apply map vector (rows board)))
