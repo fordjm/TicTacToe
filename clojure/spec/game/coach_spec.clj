@@ -52,7 +52,7 @@
 	(it "takes center when board is empty"
 			(let [gm new-gm
 						move (choose-move gm)]
-				(should= center move)
+				(should (contains? center move))
 				(move-does-not-create-threat move gm)))
 	(it "takes a corner when center is taken"
 			(let [gm (make-game x4-board 'O 'X)

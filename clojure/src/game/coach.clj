@@ -18,7 +18,7 @@
 
 (defn has-fork? [board token]
 	(< 1 (count (filter (fn [section]
-												(and (= (dec row-size) (count (filter (fn [space] (= token space)) section)))
+												(and (= (dec line-size) (count (filter (fn [space] (= token space)) section)))
 														 (= 1 (count (filter (fn [space] (integer? space)) section)))))
 										(sections board)))))
 
@@ -56,7 +56,7 @@
 
 (defn best-by-position [game]
 	(some identity (filter (fn [space] (selectable? (:board game) space))
-												 (cons center (concat (opposite-corners game) corners sides)))))
+												 (concat center (opposite-corners game) corners sides))))
 
 (defn choose-move [game]
 	"Chooses best available move in Newell and Simon priority order"

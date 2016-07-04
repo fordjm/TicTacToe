@@ -14,14 +14,6 @@
 (defn no-moves-model [p1 p2]
 	{:board board/empty-board :p1 p1 :p2 p2 :ongoing true :winner nil})
 
-(def empty-board-str (str "\n"
-													" 0 | 1 | 2"
-													"\n===+===+===\n"
-													" 3 | 4 | 5"
-													"\n===+===+===\n"
-													" 6 | 7 | 8"
-													"\n"))
-
 (defn player-takes-space [plr space]
 	(assoc board/empty-board space (:token plr)))
 
@@ -145,7 +137,7 @@
 	(it "renders no moves"
 			(rendering-move-shows-board-and-status
 				(no-moves-model p1 p2)
-				empty-board-str
+				(render-board board/empty-board)
 				(prompt-str (:type p1))))
 
 	(it "renders X moving to 4"
@@ -196,7 +188,7 @@
 			(should= "" (with-out-str (ui-instance {:path "/manual-move" :space "w"}))))
 
 	(it "tests ui-instance with setup request"
-			(should= (printed-line (str empty-board-str (prompt-str :manual)))
+			(should= (printed-line (str (render-board board/empty-board) (prompt-str :manual)))
 							 (with-out-str (ui-instance setup-req))))
 
 	(it "tests ui-instance with move request"

@@ -1,15 +1,15 @@
 (ns game.board)
 
 (def size 9)
-(def center 4)
+(def center #{4})
 (def corners #{0 2 6 8})
 (def opposites {0 8, 2 6, 6 2, 8 0})
 (def sides #{1 3 5 7})
-(def row-size (int (Math/sqrt size)))
+(def line-size (int (Math/sqrt size)))
 (def empty-board (vec (range size)))
 
 (defn rows [board]
-	(partition row-size board))
+	(partition line-size board))
 
 (defn cols [board]
 	(apply map vector (rows board)))
@@ -26,7 +26,7 @@
 	(filter integer? board))
 
 (defn win? [board]
-	(some (fn [coll] (apply = coll))
+	(some (fn [section] (apply = section))
 				(sections board)))
 
 (defn tie? [board]
@@ -37,7 +37,7 @@
 	(or (win? board) (tie? board)))
 
 (defn winner [board]
-	(some (fn [coll] (if (= 1 (count (distinct coll))) (first coll)))
+	(some (fn [section] (if (= 1 (count (distinct section))) (first section)))
 				(sections board)))
 
 (defn selectable? [board space]

@@ -11,16 +11,25 @@
 		(= :automatic type) "Game Start"
 		:else nil))
 
-(defn render-rows [rows]
-	(for [idx (range (count rows))]
-		(str " " (string/join " " (string/join "|" (nth rows idx))))))
-
 (defn wrap-str [inner outer]
 	(str outer inner outer))
 
+(defn render-space [contents]
+	"TODO:  Isolate this somewhere that depends on size"
+	(if (= 1 (count (str contents)))
+		(wrap-str contents " ")
+		(str " " contents)))
+
+(defn render-row [row]
+	(string/join "|" (map render-space row)))
+
+(defn render-rows [rows]
+	(for [row (range (count rows))]
+		(render-row (nth rows row))))
+
 (defn render-divider []
 	(wrap-str
-		(apply str (interpose "+" (repeat board/row-size "===")))
+		(apply str (interpose "+" (repeat board/line-size "===")))
 		"\n"))
 
 (defn render-board [board]
