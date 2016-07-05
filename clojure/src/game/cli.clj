@@ -2,8 +2,8 @@
 	(:require [game.ui :refer :all]
 						[game.core :as core]
 						[game.board :as board]
-						[clojure.string :as string]
-						[clojure.tools.cli :refer [parse-opts]]))
+						[game.cli-parser :as parser]
+						[clojure.string :as string]))
 
 (defn prompt-str [type]
 	(cond
@@ -67,7 +67,7 @@
 			(swap! game (fn [oldval] gm))
 			(println (str (render-board (:board gm))
 										(render-status gm))))
-		nil))
+		(println "Cannot move to selected space.")))
 
 (defn handle-exit [request]
 	[(:msg request)
@@ -111,69 +111,18 @@
 			(recur (move-request (:type (:p1 @game))))
 			(recur (exit-request "Goodbye!" 0)))))
 
-(def parse-token #(symbol %))
-(def validate-token [#(and (not (nil? (re-find #"[\S&&[^0-9]]" (str %))))
-													 (= 1 (count (str %))))
-										 "Must be a non-numerical character"])
-
-(defn strip-whitespace [str]
-	"Combined ideas from markhneedham.com/blog/2013/09/22/clojure-stripping-all-the-whitespace"
-	(string/join "" (remove string/blank? (string/split str #"\s"))))
-
-(def cli-options
-	[["-t" "--type TYPE" "Game type"
-		:default 0
-		:parse-fn #(Integer/parseInt %)
-		:validate [#(< -1 % 4) "Must be a number between 0 and 3"]]
-	 ["-f" "--first TOKEN" "First player token"
-		:default 'X
-		:parse-fn parse-token
-		:validate validate-token]
-	 ["-s" "--second TOKEN" "Second player token"
-		:default 'O
-		:parse-fn parse-token
-		:validate validate-token]
-	 ["-h" "--help"]])
-
-(defn parse-args
-	([] (parse-args []))
-	([args] (let [clean-args (for [arg args]
-														 (strip-whitespace arg))]
-						(parse-opts clean-args cli-options))))
-
-(defn exit-from-setup-request [msg]
+(defn exit-from-parser [msg]
 	(exit-request msg 1))
-
-(defn usage [options-summary]
-	(->> ["Clojure Tic-Tac-Toe"
-				""
-				"Usage: lein run [options]"
-				""
-				"Options:"
-				options-summary
-				""
-				"Types:"
-				"  0    Human vs Computer"
-				"  1    Computer vs Human"
-				"  2    Human vs Human"
-				"  3    Computer vs Computer"
-				""
-				"Enter lein run -- -h for help."]
-			 (string/join \newline)))
-
-(defn error-msg [errors]
-	(str "The following errors occurred while parsing your command:\n\n"
-			 (string/join \newline errors)))
 
 (defn setup-request [type t1 t2]
 	{:path "/setup" :type type :t1 t1 :t2 t2})
 
 (defn setup-game [args]
-	"Arg-parsing from tools.cli example"
-	(let [{:keys [options arguments errors summary]} (parse-args args)
+	"Arg-parsing from tools.cli example - want this to know about requests or parser, not both"
+	(let [{:keys [options arguments errors summary]} (parser/parse-args args)
 				request (cond
-									(:help options) (exit-from-setup-request (usage summary))
-									(not (empty? arguments)) (exit-from-setup-request (usage summary))
-									errors (exit-from-setup-request (error-msg errors))
+									(:help options) (exit-from-parser (parser/usage summary))
+									(not (empty? arguments)) (exit-from-parser (parser/usage summary))
+									errors (exit-from-parser (parser/error-msg errors))
 									:else (setup-request (:type options) (:first options) (:second options)))]
 		(run request)))

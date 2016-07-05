@@ -43,6 +43,7 @@
 		game))
 
 (defn setup-game[request]
+	"Taking the @ off creates a shit-ton of duplicate tokens errors"
 	@(make-game request))
 
 (defn minify-game [game]

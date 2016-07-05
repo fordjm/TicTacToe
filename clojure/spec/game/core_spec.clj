@@ -180,5 +180,8 @@
 
 	(it "does not set duplicate tokens"
 			(should-throw Error "Duplicate tokens: P & P" (setup-game {:type 0 :t1 'P :t2 'P})))
+
+	(it "should know an empty map is an invalid game"
+			(should= false (game-valid? {})))
 	;END SETUP TESTS
 	)

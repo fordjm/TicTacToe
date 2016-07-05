@@ -5,8 +5,8 @@
 			 "Functional Programming Patterns "
 			 "by Michael Bevilacqua-Linn"))
 
-(defn render [view model]
-	(try (view model)
+(defn render [view value]
+	(try (view value)
 			 (catch NullPointerException _
 				 (throw (Error. "View is null")))
 			 (catch ClassCastException _
