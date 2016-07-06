@@ -36,19 +36,6 @@
 		(should-throw IllegalStateException
 									(setup-game (setup-request-with-type 4))))
 
-(it "resets a game to the correct type after 0 moves"
-		(doall
-			(for [type [0 1 2 3]]
-				(let [gm (atom (setup-game (setup-request-with-type type)))]
-					(should= type (game-type (reset gm)))))))
-
-(it "resets a game to the correct type after 1 move"
-		(doall
-			(for [type [0 1 2 3]]
-				(let [gm (atom (setup-game (setup-request-with-type type)))]
-					(move gm 0)
-					(should= type (game-type (reset gm)))))))
-
 (it "sets player tokens to P and Q"
 		(let [gm (setup-game {:type 0 :t1 'P :t2 'Q})]
 			(should= 'P (:token (:p1 gm)))
