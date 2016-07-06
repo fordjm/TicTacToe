@@ -3,6 +3,7 @@
 						[game.ui :refer :all]
 						[game.cli :refer :all]
 						[game.core :as core]
+						[game.game-maker :as maker]
 						[game.board :as board]))
 
 (defn rendering-move-outputs-result [move result]
@@ -48,7 +49,7 @@
 
 (describe "game.ui"
 	(before
-		(def gm (core/setup-game setup-req))
+		(def gm (maker/setup-game setup-req))
 		(def p1 (:p1 gm))
 		(def p2 (:p2 gm)))
 

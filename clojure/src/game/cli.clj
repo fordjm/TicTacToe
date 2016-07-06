@@ -1,6 +1,7 @@
 (ns game.cli
 	(:require [game.ui :refer :all]
 						[game.core :as core]
+						[game.game-maker :as maker]
 						[game.board :as board]
 						[game.cli-parser :as parser]
 						[clojure.string :as string]))
@@ -15,7 +16,6 @@
 	(str outer inner outer))
 
 (defn render-space [contents]
-	"TODO:  Isolate this somewhere that depends on size"
 	(if (= 1 (count (str contents)))
 		(wrap-str contents " ")
 		(str " " contents)))
@@ -39,21 +39,21 @@
 			(render-rows (board/rows board)))
 		"\n"))
 
-(defn render-prompt [model]
-	(let [space (:space model)]
+(defn render-prompt [value]
+	(let [space (:space value)]
 		(if space
-			(str (:token (:p2 model)) " chose " space)
-			(prompt-str (:type (:p1 model))))))
+			(str (:token (:p2 value)) " chose " space)
+			(prompt-str (:type (:p1 value))))))
 
 (defn render-result [winner]
 	(if winner
 		(str winner " wins!")
 		"It's a tie!"))
 
-(defn render-status [model]
-	(if (:ongoing model)
-		(render-prompt model)
-		(render-result (:winner model))))
+(defn render-status [value]
+	(if (:ongoing value)
+		(render-prompt value)
+		(render-result (:winner value))))
 
 (def game (atom {}))
 
@@ -62,7 +62,7 @@
 	(fct))
 
 (defn move-view [gm]
-	(if (core/game-valid? gm)
+	(if (maker/game-valid? gm)
 		(do
 			(swap! game (fn [oldval] gm))
 			(println (str (render-board (:board gm))
@@ -80,7 +80,7 @@
 	(core/execute-move (core/make-move game (:space request))))
 
 (defn handle-setup [request]
-	(core/setup-game request))
+	(maker/setup-game request))
 
 (def request-handlers
 	{"/exit" {:controller handle-exit :view exit-view}
@@ -111,7 +111,7 @@
 			(recur (move-request (:type (:p1 @game))))
 			(recur (exit-request "Goodbye!" 0)))))
 
-(defn exit-from-parser [msg]
+(defn exit-from-parser-request [msg]
 	(exit-request msg 1))
 
 (defn setup-request [type t1 t2]
@@ -121,8 +121,8 @@
 	"Arg-parsing from tools.cli example - want this to know about requests or parser, not both"
 	(let [{:keys [options arguments errors summary]} (parser/parse-args args)
 				request (cond
-									(:help options) (exit-from-parser (parser/usage summary))
-									(not (empty? arguments)) (exit-from-parser (parser/usage summary))
-									errors (exit-from-parser (parser/error-msg errors))
+									(:help options) (exit-from-parser-request (parser/usage summary))
+									(not (empty? arguments)) (exit-from-parser-request (parser/usage summary))
+									errors (exit-from-parser-request (parser/error-msg errors))
 									:else (setup-request (:type options) (:first options) (:second options)))]
 		(run request)))

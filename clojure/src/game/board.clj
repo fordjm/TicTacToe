@@ -5,6 +5,7 @@
 (def corners #{0 2 6 8})
 (def opposites {0 8, 2 6, 6 2, 8 0})
 (def sides #{1 3 5 7})
+
 (def line-size (int (Math/sqrt size)))
 (def empty-board (vec (range size)))
 
