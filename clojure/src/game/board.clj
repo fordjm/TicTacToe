@@ -1,10 +1,10 @@
 (ns game.board)
 
-(def size 9)
-(def center #{4})
-(def corners #{0 2 6 8})
-(def opposites {0 8, 2 6, 6 2, 8 0})
-(def sides #{1 3 5 7})
+(def size 16)
+(def center #{5 6 9 10})
+(def corners #{0 3 12 15})
+(def opposites {0 15, 3 12, 12 3, 15 0})
+(def sides #{1 2 4 7 8 11 13 14})
 
 (def line-size (int (Math/sqrt size)))
 (def empty-board (vec (range size)))

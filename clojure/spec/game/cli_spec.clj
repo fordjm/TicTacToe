@@ -4,7 +4,8 @@
 						[game.cli :refer :all]
 						[game.core :as core]
 						[game.game-maker :as maker]
-						[game.board :as board]))
+						[game.board :as board]
+						[game.test-util :as util]))
 
 (defn rendering-move-outputs-result [move result]
 	(should= result (with-out-str (render move-view move))))
@@ -15,15 +16,14 @@
 (defn player-takes-space [plr space]
 	(assoc board/empty-board space (:token plr)))
 
-(defn cats-game [p1 p2] [p1 p2 p1
-												 p1 p2 p2
-												 p2 p1 p1])
-(defn p1-wins [p1 p2] [p1 1 p2
-											 p1 p2 5
-											 p1 p2 p1])
-(defn p2-wins [p1 p2] [p1 p2 p1
-											 3 p2 5
-											 6 p2 p1])
+(defn cats-game [p1 p2]
+	(repeat board/size 'XO))
+
+(defn p1-wins [p1 p2]
+	(util/assoc-all board/empty-board (first (board/cols board/empty-board)) p1))
+
+(defn p2-wins [p1 p2]
+	(util/assoc-all board/empty-board (second (board/cols board/empty-board)) p2))
 
 (defn printed-line [line]
 	(str line "\r\n"))
