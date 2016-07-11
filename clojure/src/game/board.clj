@@ -1,12 +1,19 @@
-(ns game.board)
+(ns game.board
+	(:require [clojure.set :as set]))
 
-(def size 16)
-(def center #{5 6 9 10})
-(def corners #{0 3 12 15})
-(def opposites {0 15, 3 12, 12 3, 15 0})
-(def sides #{1 2 4 7 8 11 13 14})
+(def size 9)
+(def center (sorted-set 4))
 
 (def line-size (int (Math/sqrt size)))
+(def corners (sorted-set 0
+												 (dec line-size)
+												 (- size line-size)
+												 (dec size)))
+(def opposites {(first corners) (last corners),
+								(second corners) (second (rest corners)),
+								(second (rest corners)) (second corners),
+								(last corners) (first corners)})
+(def sides (apply sorted-set (set/difference (set (range size)) center corners)))
 (def empty-board (vec (range size)))
 
 (defn rows [board]

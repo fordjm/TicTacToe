@@ -15,13 +15,17 @@
 (defn wrap-str [inner outer]
 	(str outer inner outer))
 
-(defn render-space [contents]
-	(if (= 1 (count (str contents)))
-		(wrap-str contents " ")
-		(str " " contents)))
+(defn render-three-char-space [contents]
+	"Max supported board size = 31x31 (much larger than available CLI space)"
+	(let [length (count (str contents))]
+		(cond
+			(= 2 length) (str " " contents)
+			(= 1 length) (wrap-str contents " ")
+			:else
+			contents)))
 
 (defn render-row [row]
-	(string/join "|" (map render-space row)))
+	(string/join "|" (map render-three-char-space row)))
 
 (defn render-rows [rows]
 	(for [row (range (count rows))]
