@@ -24,6 +24,15 @@
 				(game-should-have-winner token state)))))
 
 (describe "board"
+	(it "computes the center"
+			(should= (sorted-set 0 1 2 3) (compute-center 2))
+			(should= (sorted-set 4) (compute-center 3))
+			(should= (sorted-set 5 6 9 10) (compute-center 4))
+			(should= (sorted-set 12) (compute-center 5))
+			(should= (sorted-set 14 15 20 21) (compute-center 6))
+			(should= (sorted-set 24) (compute-center 7))
+			(should= (sorted-set 27 28 35 36) (compute-center 8)))
+
 	(it "recognizes an unfinished game"
 			(let [state empty-board]
 				(game-should-not-be-over state)

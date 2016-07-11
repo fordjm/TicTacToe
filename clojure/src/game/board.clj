@@ -1,20 +1,47 @@
 (ns game.board
 	(:require [clojure.set :as set]))
 
-(def size 9)
-(def center (sorted-set 4))
+(def line-size 3)
 
-(def line-size (int (Math/sqrt size)))
-(def corners (sorted-set 0
-												 (dec line-size)
-												 (- size line-size)
-												 (dec size)))
-(def opposites {(first corners) (last corners),
-								(second corners) (second (rest corners)),
-								(second (rest corners)) (second corners),
-								(last corners) (first corners)})
+(defn compute-size [line-sz]
+	(* line-sz line-sz))
+
+(def size (compute-size line-size))
+
+(defn compute-corners [sz line-sz]
+	(sorted-set 0
+							(dec line-sz)
+							(- sz line-sz)
+							(dec sz)))
+
+(def corners (compute-corners size line-size))
+
+(defn compute-even-center [gap i j k l]
+	(if (= k (+ j gap))
+		(sorted-set i j k l)
+		(compute-even-center gap (+ i (+ 2 gap)) (+ j gap) (- k gap) (- l (+ 2 gap)))))
+
+(defn compute-center [line-sz]
+	(let [sz (compute-size line-sz)]
+		(if (odd? sz)
+			(sorted-set (int (Math/floor (/ sz 2))))
+			(apply compute-even-center (cons (dec line-sz) (compute-corners sz line-sz))))))
+
+(def center (compute-center line-size))
+
+(defn compute-opposites [cnrs]
+	{(first cnrs) (last cnrs),
+	 (second cnrs) (second (rest cnrs)),
+	 (second (rest cnrs)) (second cnrs),
+	 (last cnrs) (first cnrs)})
+
+(def opposites (compute-opposites corners))
+
 (def sides (apply sorted-set (set/difference (set (range size)) center corners)))
+
 (def empty-board (vec (range size)))
+
+;===ABOVE LINE DEPENDS ON CREATION TIME VALUES, BELOW LINE DEPENDS ON CURRENT VALUES===
 
 (defn rows [board]
 	(partition line-size board))
