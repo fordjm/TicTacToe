@@ -1,5 +1,5 @@
 (ns game.core
-  (:require [game.board :refer :all]
+  (:require [game.board :as board]
             [game.game-maker :as maker]
             [game.coach :as coach]))
 
@@ -21,8 +21,8 @@
                            :p1 (:p2 @game)
                            :p2 p1
                            :space space
-                           :ongoing (not (game-over? board))
-                           :winner (winner board)))
+                           :ongoing (not (board/game-over? board))
+                           :winner (board/winner board)))
                   {})))
 
 (defn reset [game]
