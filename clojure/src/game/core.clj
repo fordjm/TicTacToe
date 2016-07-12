@@ -9,7 +9,7 @@
   (let [gameval @game
         p1val (:p1 gameval)
         p2val (:p2 gameval)]
-    {:board (:board gameval) :p1 (:token p1val) :p2 (:token p2val)}))
+    (coach/make-game (:board gameval) (:token p1val) (:token p2val))))
 
 (defn move
   ([game] (move game (coach/choose-move (minify-game game))))
