@@ -1,6 +1,6 @@
-(ns game.core-spec
+(ns game.turn-spec
   (:require [speclj.core :refer :all]
-            [game.core :refer :all]
+            [game.turn :refer :all]
             [game.board :refer :all]
             [game.game-maker :as maker]
             [game.coach :as coach]))

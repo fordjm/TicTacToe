@@ -1,4 +1,4 @@
-(ns game.core
+(ns game.turn
   (:require [game.board :as board]
             [game.game-maker :as maker]
             [game.coach :as coach]))

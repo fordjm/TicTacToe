@@ -1,5 +1,6 @@
 (ns game.main
-  (:require [game.cli :as ui]))
+  (:require [game.tic-tac-toe :as ttt]
+            [game.cli-parser :as parser]))
 
 (defn -main [& args]
-  (ui/setup-game args))
+  (ttt/initialize parser/interpret args))

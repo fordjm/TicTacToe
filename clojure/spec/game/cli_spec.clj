@@ -2,13 +2,13 @@
   (:require [speclj.core :refer :all]
             [game.ui :refer :all]
             [game.cli :refer :all]
-            [game.core :as core]
+            [game.turn :as core]
             [game.game-maker :as maker]
             [game.board :as board]
             [game.test-util :as util]))
 
 (defn rendering-move-outputs-result [move result]
-  (should= result (with-out-str (render move-view move))))
+  (should= result (with-out-str (render game-view move))))
 
 (defn no-moves-model [p1 p2]
   {:board board/empty-board :p1 p1 :p2 p2 :ongoing true :winner nil})

@@ -1,14 +1,15 @@
 (ns game.cli
   (:require [game.ui :refer :all]
-            [game.cli-parser :as parser]
             [game.game-maker :as maker]
-            [game.core :as core]
+            [game.turn :as turn]
             [game.board :as board]
             [clojure.string :as string]))
 
+(def highest (dec board/size))
+
 (defn prompt-str [type]
   (cond
-    (= :manual type) (str "Enter[0-" (dec board/size) "]:")
+    (= :manual type) (str "Enter[0-" highest "]:")
     (= :automatic type) "Game Start"
     :else nil))
 
@@ -65,7 +66,7 @@
   (println msg)
   (fct))
 
-(defn move-view [gm]
+(defn game-view [gm]
   (if (not (empty? gm))
     (do
       (swap! game (fn [oldval] gm))
@@ -78,19 +79,19 @@
    (fn [] (System/exit (:status request)))])
 
 (defn handle-automatic-move [request]
-  (core/execute-move (core/make-move game)))
+  (turn/execute-move (turn/make-move game)))
 
 (defn handle-manual-move [request]
-  (core/execute-move (core/make-move game (:space request))))
+  (turn/execute-move (turn/make-move game (:space request))))
 
 (defn handle-setup [request]
   (maker/setup-game request))
 
 (def request-handlers
   {"/exit" {:controller handle-exit :view exit-view}
-   "/automatic-move" {:controller handle-automatic-move :view move-view}
-   "/manual-move" {:controller handle-manual-move :view move-view}
-   "/setup" {:controller handle-setup :view move-view}})
+   "/automatic-move" {:controller handle-automatic-move :view game-view}
+   "/manual-move" {:controller handle-manual-move :view game-view}
+   "/setup" {:controller handle-setup :view game-view}})
 
 (def ui-instance (ui request-handlers))
 
@@ -106,24 +107,14 @@
     :else nil))
 
 (defn exit-request [msg status]
-  {:path "/exit" :msg msg :status status})
+	{:path "/exit" :msg msg :status status})
 
 (defn run [request]
-  (loop [request request]
-    (ui-instance request)
-    (if (:ongoing @game)
-      (recur (move-request (:type (:p1 @game))))
-      (recur (exit-request "Goodbye!" 0)))))
-
-(defn exit-from-parser-request [msg]
-  (exit-request msg 1))
+	(loop [request request]
+		(ui-instance request)
+		(if (:ongoing @game)
+			(recur (move-request (:type (:p1 @game))))
+			(recur (exit-request "Goodbye!" 0)))))
 
 (defn setup-request [type t1 t2]
   {:path "/setup" :type type :t1 t1 :t2 t2})
-
-(defn setup-game [args]
-  (let [{:keys [msg options]} (parser/interpret (parser/parse-args args))
-        request (if msg
-									(exit-from-parser-request msg)
-                  (setup-request (:type options) (:first options) (:second options)))]
-    (run request)))

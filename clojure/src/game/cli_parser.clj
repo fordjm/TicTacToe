@@ -3,7 +3,9 @@
             [clojure.string :as string]))
 
 (def parse-token #(symbol %))
+
 (def non-numeric "Must be a non-numeric character")
+
 (def validate-token [#(and (not (nil? (re-find #"[\S&&[^0-9]]" (str %))))
                            (= 1 (count (str %))))
                      non-numeric])
@@ -13,6 +15,7 @@
   (string/join "" (remove string/blank? (string/split str #"\s"))))
 
 (def token-msg "Must be a number between 0 and 3")
+
 (def cli-options
   [["-t" "--type TYPE" "Game type"
     :default 0
@@ -63,5 +66,6 @@
 			(not (empty? arguments)) (usage summary)
 			errors (error-msg errors))))
 
-(defn interpret [parsed]
-  {:msg (interpret-msg parsed) :options (:options parsed)})
+(defn interpret [args]
+  (let [parsed (parse-args args)]
+		{:msg (interpret-msg parsed) :options (:options parsed)}))
