@@ -122,11 +122,8 @@
   {:path "/setup" :type type :t1 t1 :t2 t2})
 
 (defn setup-game [args]
-  "Arg-parsing from tools.cli example - want this to know about requests or parser, not both"
-  (let [{:keys [options arguments errors summary]} (parser/parse-args args)
-        request (cond
-                  (:help options) (exit-from-parser-request (parser/usage summary))
-                  (not (empty? arguments)) (exit-from-parser-request (parser/usage summary))
-                  errors (exit-from-parser-request (parser/error-msg errors))
-                  :else (setup-request (:type options) (:first options) (:second options)))]
+  (let [{:keys [msg options]} (parser/interpret (parser/parse-args args))
+        request (if msg
+									(exit-from-parser-request msg)
+                  (setup-request (:type options) (:first options) (:second options)))]
     (run request)))
