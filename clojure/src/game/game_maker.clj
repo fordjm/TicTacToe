@@ -15,12 +15,12 @@
     (= game-type 3) [:automatic :automatic]
     :else [nil nil]))
 
-(defn make-players [request]
-  (if (= (:t1 request) (:t2 request))
-    (throw (Error. (str "Duplicate tokens: " (:t1 request) " & " (:t2 request)))))
-  (let [[tp1 tp2] (player-types (:type request))]
-    {:p1 (make-player (:t1 request) tp1 0)
-     :p2 (make-player (:t2 request) tp2 1)}))
+(defn make-players [params]
+  (if (= (:t1 params) (:t2 params))
+    (throw (Error. (str "Duplicate tokens: " (:t1 params) " & " (:t2 params)))))
+  (let [[tp1 tp2] (player-types (:type params))]
+    {:p1 (make-player (:t1 params) tp1 0)
+     :p2 (make-player (:t2 params) tp2 1)}))
 
 (defn boolean? [value]
   (or (false? value) (true? value)))
@@ -34,14 +34,14 @@
          (boolean? (:ongoing game)) (every? player-valid? (map game [:p1 :p2]))
          (contains? game :winner))))
 
-(defn make-game [request]
-  (let [game (atom (merge new-game (make-players request)))]
+(defn make-game [params]
+  (let [game (atom (merge new-game (make-players params)))]
     (set-validator! game
                     (fn [newval] (game-valid? newval)))
     game))
 
-(defn setup-game[request]
-  @(make-game request))
+(defn setup-game[params]
+  @(make-game params))
 
 (defn heterogeneous-players? [players]
   (reduce not= (map :type players)))

@@ -1,7 +1,7 @@
 (ns game.coach
   (:require [game.board :refer :all]))
 
-(defn make-game [board p1 p2]
+(defn coachs-game [board p1 p2]
   {:board board :p1 p1 :p2 p2})
 
 (defn threats [board token]
@@ -30,7 +30,7 @@
                            (available board)))))
 
 (defn swap-players [game]
-  (make-game (:board game) (:p2 game) (:p1 game)))
+  (coachs-game (:board game) (:p2 game) (:p1 game)))
 
 (defn update-game [game space]
   (let [newboard (assoc (:board game) space (:p1 game))]

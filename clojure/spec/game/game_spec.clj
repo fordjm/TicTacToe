@@ -1,6 +1,6 @@
-(ns game.turn-spec
+(ns game.game-spec
   (:require [speclj.core :refer :all]
-            [game.turn :refer :all]
+            [game.game :refer :all]
             [game.board :refer :all]
             [game.game-maker :as maker]
             [game.coach :as coach]))
@@ -35,7 +35,7 @@
 (defn make-move-response [board space p1 p2 ongoing winner]
   {:board board :space space :p1 p1 :p2 p2 :ongoing ongoing :winner (:token winner)})
 
-(describe "game.core"
+(describe "game.game"
   (before
     (reset game)
     (swap! moves (fn [oldval] []))
@@ -47,7 +47,7 @@
       (should= {} (execute-move (make-move game -1)))
       (should= {} (execute-move (make-move game size))))
 
-  (it "executes a legal move"
+  (it "executes manual moves"
       (should= (p1-takes-4 p1 p2) (execute-move (make-move game 4))))
 
   (it "keeps a history"
@@ -63,7 +63,7 @@
       (let [executed (execute-moves (make-moves [4] [4]))]
         (should= {} (second executed))))
 
-  (it "handles automatic moves"
+  (it "executes automatic moves"
       (let [mini-gm (minify-game game)
             result (move game)]
         (should= (coach/choose-move mini-gm) (:space result))))

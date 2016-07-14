@@ -1,5 +1,5 @@
 (ns game.cli
-  (:require [game.turn :as turn]
+  (:require [game.game :as game]
             [game.board :as board]
             [clojure.string :as string]))
 
@@ -62,8 +62,7 @@
 	(if (not (empty? gm))
 		(do
 			(println (str (render-board (:board gm))
-										(render-status gm)))
-			gm)
+										(render-status gm))))
 		(println "Cannot move to selected space.")))
 
 (defn try-parse-int [value]
@@ -71,9 +70,15 @@
     (Integer/parseInt value)
     (catch NumberFormatException e nil)))
 
-(defn handle-move [game]
+(defn handle-manual-move [game]
+	(game/execute-move (game/make-move game (try-parse-int (read-line)))))
+
+(defn handle-automatic-move [game]
+	(game/execute-move (game/make-move game)))
+
+(defn move-handler [game]
 	(let [p1 (:p1 @game)
 				type (:type p1)]
 		(cond
-			(= :manual type) (turn/execute-move (turn/make-move game (try-parse-int (read-line))))
-			(= :automatic type) (turn/execute-move (turn/make-move game)))))
+			(= :manual type) (handle-manual-move game)
+			(= :automatic type) (handle-automatic-move game))))

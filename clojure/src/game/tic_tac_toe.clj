@@ -1,6 +1,5 @@
 (ns game.tic-tac-toe
-  (:require [game.cli :as cli]
-            [game.game-maker :as maker]))
+  (:require [game.game-maker :as maker]))
 
 (def game-atom (atom {}))
 
@@ -11,14 +10,14 @@
 (defn exit [status]
   (System/exit status))
 
-(defn game-loop [game view]
+(defn game-loop [game view move-handler]
   (loop [game game
          view view]
     (do
       (maybe-update-game-atom game)
       (view game)
       (if (:ongoing @game-atom)
-        (recur (cli/handle-move game-atom) view)
+        (recur (move-handler game-atom) view)
         (exit 0)))))
 
 (defn exit-with-error [msg]
@@ -26,12 +25,13 @@
     (println msg)
     (exit-fn)))
 
-(defn run [interpreted-args]
+(defn run [view move-handler interpreted-args]
   (let [{:keys [msg options]} interpreted-args]
     (if msg
       (exit-with-error msg)
       (game-loop (maker/setup-game {:type (:type options) :t1 (:first options) :t2 (:second options)})
-                 cli/game-view))))
+                 view
+								 move-handler))))
 
-(defn initialize [interpret args]
-  (run (interpret args)))
+(defn initialize [view move-handler interpret args]
+  (run view move-handler (interpret args)))
