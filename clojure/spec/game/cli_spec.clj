@@ -1,14 +1,12 @@
 (ns game.cli-spec
   (:require [speclj.core :refer :all]
-            [game.ui :refer :all]
             [game.cli :refer :all]
-            [game.turn :as core]
             [game.game-maker :as maker]
             [game.board :as board]
             [game.test-util :as util]))
 
 (defn rendering-move-outputs-result [move result]
-  (should= result (with-out-str (render game-view move))))
+  (should= result (with-out-str (game-view move))))
 
 (defn no-moves-model [p1 p2]
   {:board board/empty-board :p1 p1 :p2 p2 :ongoing true :winner nil})
@@ -28,22 +26,10 @@
 (defn printed-line [line]
   (str line "\r\n"))
 
-(defn make-move-stub [game space]
-  (let [next (:p2 @game)]
-    (fn [] {:board (repeat board/size space) :p1 next :p2 (:p1 @game) :ongoing true :winner nil})))
-
-(defn execute-move-stub [move]
-  (move))
-
 (defn rendering-move-shows-board-and-status [move board status]
   (rendering-move-outputs-result
     move
     (printed-line (str board status))))
-
-(defn run-with-move-stubs [fct]
-  (with-redefs [core/make-move make-move-stub
-                core/execute-move execute-move-stub]
-    (fct)))
 
 (def setup-req {:path "/setup" :type 0 :t1 'X :t2 'O})
 
@@ -52,9 +38,6 @@
     (def gm (maker/setup-game setup-req))
     (def p1 (:p1 gm))
     (def p2 (:p2 gm)))
-
-  (it "does not plagiarize"
-      (should (give-credit)))
 
   (it "renders no moves"
       (rendering-move-shows-board-and-status
@@ -98,36 +81,18 @@
         (render-board (p2-wins p1 p2))
         (render-result p2)))
 
-  (it "throws an error when passed an invalid view"
-      (should-throw Error "View is null"
-                    (render nil no-moves-model))
-      (should-throw Error "Invalid view"
-                    (render "Alaska" no-moves-model))
-      (should-throw Error "Invalid view"
-                    (render [] no-moves-model)))
-
   (it "filters non-integer space input"
       (should= (printed-line "Cannot move to selected space.")
-               (with-out-str (ui-instance {:path "/manual-move" :space "w"}))))
-
-  (it "tests ui-instance with setup request"
-      (should= (printed-line (str (render-board board/empty-board) (prompt-str :manual)))
-               (with-out-str (ui-instance setup-req))))
-
-  (it "tests ui-instance with move request"
-      (should= (printed-line (str (render-board (repeat board/size 4)) (prompt-str :automatic)))
                (with-out-str
-                 (run-with-move-stubs
-                   (fn [] (ui-instance {:path "/manual-move" :space "4"}))))))
+                 (with-in-str "w"
+                              (game-view (handle-move (atom gm)))))))
 
-  (it "tests ui-instance with exit request - exits the tests"
-      ;(should= (usage summ) (with-out-str (ui-instance (exit-from-setup-request (usage summ)))))
-      )
+  (it "tests game-view with new game"
+      (should= (printed-line (str (render-board board/empty-board) (prompt-str :manual)))
+               (with-out-str (game-view gm))))
 
-  (it "gets a human move request - not sure these should exist"
-      (should= {:path "/manual-move" :space 0}
-               (with-in-str "0" (move-request :manual))))
-
-  (it "gets a computer move request"
-      (should= {:path "/automatic-move"} (move-request :automatic)))
+  (xit "tests game-view with valid move"
+      (should= (printed-line (str (render-board (assoc board/empty-board 4 (:token p1))) (prompt-str :automatic)))
+               (with-out-str
+                 (game-view (handle-move (atom gm))))))
   )

@@ -1,7 +1,5 @@
 (ns game.cli
-  (:require [game.ui :refer :all]
-            [game.game-maker :as maker]
-            [game.turn :as turn]
+  (:require [game.turn :as turn]
             [game.board :as board]
             [clojure.string :as string]))
 
@@ -60,61 +58,22 @@
     (render-prompt value)
     (render-result (:winner value))))
 
-(def game (atom {}))
-
-(defn exit-view [[msg fct]]
-  (println msg)
-  (fct))
-
 (defn game-view [gm]
-  (if (not (empty? gm))
-    (do
-      (swap! game (fn [oldval] gm))
-      (println (str (render-board (:board gm))
-                    (render-status gm))))
-    (println "Cannot move to selected space.")))
-
-(defn handle-exit [request]
-  [(:msg request)
-   (fn [] (System/exit (:status request)))])
-
-(defn handle-automatic-move [request]
-  (turn/execute-move (turn/make-move game)))
-
-(defn handle-manual-move [request]
-  (turn/execute-move (turn/make-move game (:space request))))
-
-(defn handle-setup [request]
-  (maker/setup-game request))
-
-(def request-handlers
-  {"/exit" {:controller handle-exit :view exit-view}
-   "/automatic-move" {:controller handle-automatic-move :view game-view}
-   "/manual-move" {:controller handle-manual-move :view game-view}
-   "/setup" {:controller handle-setup :view game-view}})
-
-(def ui-instance (ui request-handlers))
+	(if (not (empty? gm))
+		(do
+			(println (str (render-board (:board gm))
+										(render-status gm)))
+			gm)
+		(println "Cannot move to selected space.")))
 
 (defn try-parse-int [value]
   (try
     (Integer/parseInt value)
     (catch NumberFormatException e nil)))
 
-(defn move-request [type]
-  (cond
-    (= :automatic type) {:path "/automatic-move"}
-    (= :manual type) {:path "/manual-move" :space (try-parse-int (read-line))}
-    :else nil))
-
-(defn exit-request [msg status]
-	{:path "/exit" :msg msg :status status})
-
-(defn run [request]
-	(loop [request request]
-		(ui-instance request)
-		(if (:ongoing @game)
-			(recur (move-request (:type (:p1 @game))))
-			(recur (exit-request "Goodbye!" 0)))))
-
-(defn setup-request [type t1 t2]
-  {:path "/setup" :type type :t1 t1 :t2 t2})
+(defn handle-move [game]
+	(let [p1 (:p1 @game)
+				type (:type p1)]
+		(cond
+			(= :manual type) (turn/execute-move (turn/make-move game (try-parse-int (read-line))))
+			(= :automatic type) (turn/execute-move (turn/make-move game)))))
