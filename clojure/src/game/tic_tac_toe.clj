@@ -30,10 +30,10 @@
     (if msg
       (exit-with-error msg)
       (game-loop (maker/setup-game {:type (:type options)
-																		:t1 (:first options)
-																		:t2 (:second options)})
+                                    :t1 (:first options)
+                                    :t2 (:second options)})
                  view
-								 move-handler))))
+                 move-handler))))
 
 (defn initialize [view move-handler interpret args]
   (run view move-handler (interpret args)))
