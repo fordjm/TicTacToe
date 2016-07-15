@@ -30,7 +30,7 @@
   (should= msg (:msg interpreted))
   (should= options (:options interpreted)))
 
-(describe "cli-parser"
+(describe "game.cli-parser"
   (it "parses no arguments"
       (should= default-args (parse-args)))
 

@@ -23,7 +23,7 @@
         (game-should-not-have-ending tie? state)
         (game-should-have-winner token state)))))
 
-(describe "board"
+(describe "game.board"
   (it "computes the center"
     (should= (sorted-set 0 1 2 3) (compute-center 2))
     (should= (sorted-set 4) (compute-center 3))
@@ -37,7 +37,7 @@
     (let [state empty-board]
       (game-should-not-be-over state)
       (game-should-have-winner nil state)))
-  (it "recognizes row winner"
+  (it "recognizes a row winner"
     (recognizes-winner-by-section (rows empty-board) 'X))
   (it "recognizes a column winner"
     (recognizes-winner-by-section (cols empty-board) 'O))

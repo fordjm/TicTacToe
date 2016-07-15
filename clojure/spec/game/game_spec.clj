@@ -2,7 +2,7 @@
   (:require [speclj.core :refer :all]
             [game.game :refer :all]
             [game.board :refer :all]
-            [game.game-maker :as maker]
+            [game.maker :as maker]
             [game.coach :as coach]))
 
 (def game (atom (maker/setup-game {:type 0 :t1 'X :t2 'O})))
@@ -67,7 +67,6 @@
       (let [mini-gm (minify-game game)
             result (move game)]
         (should= (coach/choose-move mini-gm) (:space result))))
-
 
   (it "resets a game to the correct type after 0 moves"
       (doall

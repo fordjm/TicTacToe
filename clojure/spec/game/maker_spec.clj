@@ -1,6 +1,6 @@
-(ns game.game-maker-spec
+(ns game.maker-spec
   (:require [speclj.core :refer :all]
-            [game.game-maker :refer :all]))
+						[game.maker :refer :all]))
 
 (defn setup-request-with-type [type]
   {:type type :t1 'X :t2 'O})

@@ -3,6 +3,24 @@
             [game.board :as board]
             [clojure.string :as string]))
 
+(defn try-parse-int [value]
+	(try
+		(Integer/parseInt value)
+		(catch NumberFormatException e nil)))
+
+(defn handle-manual-move [game]
+	(game/execute-move (game/make-move game (try-parse-int (read-line)))))
+
+(defn handle-automatic-move [game]
+	(game/execute-move (game/make-move game)))
+
+(defn move-handler [game]
+	(let [p1 (:p1 @game)
+				type (:type p1)]
+		(cond
+			(= :manual type) (handle-manual-move game)
+			(= :automatic type) (handle-automatic-move game))))
+
 (def highest (dec board/size))
 
 (defn prompt-str [type]
@@ -64,21 +82,3 @@
 			(println (str (render-board (:board gm))
 										(render-status gm))))
 		(println "Cannot move to selected space.")))
-
-(defn try-parse-int [value]
-  (try
-    (Integer/parseInt value)
-    (catch NumberFormatException e nil)))
-
-(defn handle-manual-move [game]
-	(game/execute-move (game/make-move game (try-parse-int (read-line)))))
-
-(defn handle-automatic-move [game]
-	(game/execute-move (game/make-move game)))
-
-(defn move-handler [game]
-	(let [p1 (:p1 @game)
-				type (:type p1)]
-		(cond
-			(= :manual type) (handle-manual-move game)
-			(= :automatic type) (handle-automatic-move game))))

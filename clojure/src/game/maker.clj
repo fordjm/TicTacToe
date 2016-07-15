@@ -1,4 +1,4 @@
-(ns game.game-maker
+(ns game.maker
   (:require [game.board :as board]))
 
 (def new-game {:board board/empty-board :ongoing true :winner nil})

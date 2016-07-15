@@ -1,7 +1,7 @@
 (ns game.cli-spec
   (:require [speclj.core :refer :all]
             [game.cli :refer :all]
-            [game.game-maker :as maker]
+            [game.maker :as maker]
             [game.board :as board]
             [game.test-util :as util]))
 

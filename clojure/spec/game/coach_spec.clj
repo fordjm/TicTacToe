@@ -4,7 +4,7 @@
             [game.board :refer :all]
             [game.test-util :as util]))
 
-(def new-gm (coachs-game empty-board 'X 'O))
+(def new-gm (game-pieces empty-board 'X 'O))
 (def to-take (- line-size 2))
 (def second-last (- line-size 2))
 
@@ -55,7 +55,7 @@
 
   (it "takes a corner when center is taken"
       (let [board (util/assoc-all empty-board center 'X)
-            gm (coachs-game board 'O 'X)
+            gm (game-pieces board 'O 'X)
             move (choose-move gm)]
         (should (contains? corners move))
         (move-does-not-create-threat move gm)))
@@ -63,7 +63,7 @@
   (it "takes an opposite corner"
       (let [ohs (assoc empty-board (first corners) 'O)
             board (util/assoc-all ohs center 'X)
-            gm (coachs-game board 'X 'O)
+            gm (game-pieces board 'X 'O)
             move (choose-move gm)]
         (should (contains? (opposite-corners gm) move))
         (move-does-not-create-threat move gm)))
@@ -71,7 +71,7 @@
   (it "takes an empty side"
       (let [exes (util/assoc-all empty-board (cons (first sides) (concat center (drop 2 corners))) 'X)
             board (util/assoc-all exes (cons (last sides) (take 2 corners)) 'O)
-            gm (coachs-game board 'O 'X)
+            gm (game-pieces board 'O 'X)
             move (choose-move gm)]
         (should (contains? sides move))
         (move-does-not-create-threat move gm)))
@@ -80,7 +80,7 @@
   (it "makes a winning move"
       (let [ohs (util/assoc-all empty-board (butlast (second (rows empty-board))) 'O)
             board (util/assoc-all ohs (butlast (first (rows ohs))) 'X)
-            gm (coachs-game board 'X 'O)
+            gm (game-pieces board 'X 'O)
             move (choose-move gm)]
         (should= (:p1 gm) (winner (assoc board move 'X)))))
 
@@ -88,7 +88,7 @@
       (doall
         (for [section (sections empty-board)]
           (let [board (util/assoc-all empty-board (butlast section) 'O)
-                gm (coachs-game board 'X 'O)
+                gm (game-pieces board 'X 'O)
                 move (choose-move gm)]
             (blocks-opponent-win move gm)))))
 
@@ -96,7 +96,7 @@
       (let [ohs (util/assoc-all empty-board (take to-take (rest (second (cols empty-board)))) 'O)
             board (util/assoc-all ohs (concat (take to-take (first (cols ohs)))
                                               (drop 2 (last (rows ohs)))) 'X)
-            gm (coachs-game board 'X 'O)
+            gm (game-pieces board 'X 'O)
             move (choose-move gm)]
         (move-creates-fork move gm)))
 
@@ -104,14 +104,14 @@
       (let [exes (util/assoc-all empty-board (butlast (second (diags empty-board))) 'X)
             board (util/assoc-all exes (concat (take to-take (first (cols exes)))
                                                (drop 2 (last (rows exes)))) 'O)
-            gm (coachs-game board 'O 'X)
+            gm (game-pieces board 'O 'X)
             move (choose-move gm)]
         (move-creates-fork move gm)))
 
   (it "prevents a fork by forcing a block elsewhere A"
       (let [ohs (util/assoc-all empty-board (take to-take (rest (nth (cols empty-board) second-last))) 'O)
             board (util/assoc-all ohs (concat (take to-take (first (rows ohs))) (drop 2 (last (cols ohs)))) 'X)
-            gm (coachs-game board 'O 'X)
+            gm (game-pieces board 'O 'X)
             move (choose-move gm)]
         (move-creates-threat move gm)
         (blocking-threat-prevents-fork move gm)))
@@ -121,7 +121,7 @@
             board (util/assoc-all ohs
                                   (concat (take to-take (last (rows ohs)))
                                           (take to-take (rest (nth (cols ohs) second-last)))) 'X)
-            gm (coachs-game board 'O 'X)
+            gm (game-pieces board 'O 'X)
             move (choose-move gm)]
         (move-creates-threat move gm)
         (blocking-threat-prevents-fork move gm)))
@@ -130,10 +130,10 @@
 			(let [exes (util/assoc-all empty-board (concat (take to-take (rest (first (cols empty-board))))
                                                      (drop 2 (first (rows empty-board)))) 'X)
             board (util/assoc-all exes (take to-take (rest (last (cols exes)))) 'O)
-            gm (coachs-game board 'O 'X)
+            gm (game-pieces board 'O 'X)
             move (choose-move gm)]
-				(should (create-fork (coachs-game board (:p2 gm) (:p1 gm))))
-				(should-not (create-fork (coachs-game (assoc board move (:p1 gm)) (:p2 gm) (:p1 gm))))))
+				(should (create-fork (game-pieces board (:p2 gm) (:p1 gm))))
+				(should-not (create-fork (game-pieces (assoc board move (:p1 gm)) (:p2 gm) (:p1 gm))))))
 
   (it "tests opposite-corners"
 			(should= #{} (opposite-corners new-gm))
@@ -141,4 +141,4 @@
 				(for [[p1 p2] [['X 'O] ['O 'X]]]
 					(should= (for [opposite (reverse (sort corners))] #{opposite})
 									 (for [corner (sort corners)]
-										 (opposite-corners (coachs-game (assoc empty-board corner p1) p2 p1))))))))
+										 (opposite-corners (game-pieces (assoc empty-board corner p1) p2 p1))))))))

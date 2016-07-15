@@ -1,6 +1,6 @@
 (ns game.game
   (:require [game.board :as board]
-            [game.game-maker :as maker]
+            [game.maker :as maker]
             [game.coach :as coach]))
 
 (def moves (atom []))
@@ -9,7 +9,7 @@
   (let [gameval @game
         p1val (:p1 gameval)
         p2val (:p2 gameval)]
-		(coach/coachs-game (:board gameval) (:token p1val) (:token p2val))))
+		(coach/game-pieces (:board gameval) (:token p1val) (:token p2val))))
 
 (defn move
   ([game] (move game (coach/choose-move (minify-game game))))
@@ -26,7 +26,7 @@
                   {})))
 
 (defn reset [game]
-  "TODO:  How to reset game without game-maker dependency (keep initial state?  move reset to maker and keep params atom there?)"
+  "TODO:  Move reset to maker and keep params atom there?"
   (let [request (maker/extract-request @game)]
     (swap! game (fn [oldval] (maker/setup-game request)))))
 

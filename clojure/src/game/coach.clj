@@ -1,7 +1,7 @@
 (ns game.coach
   (:require [game.board :refer :all]))
 
-(defn coachs-game [board p1 p2]
+(defn game-pieces [board p1 p2]
   {:board board :p1 p1 :p2 p2})
 
 (defn threats [board token]
@@ -17,10 +17,16 @@
 (defn block-win [game]
   (some identity (threats (:board game) (:p2 game))))
 
+(defn token-has-all-but-one-space [token section]
+	(= (dec line-size) (count (filter (fn [space] (= token space)) section))))
+
+(defn section-has-one-free-space [section]
+	(= 1 (count (filter (fn [space] (integer? space)) section))))
+
 (defn has-fork? [board token]
   (< 1 (count (filter (fn [section]
-                        (and (= (dec line-size) (count (filter (fn [space] (= token space)) section)))
-                             (= 1 (count (filter (fn [space] (integer? space)) section)))))
+                        (and (token-has-all-but-one-space token section)
+                             (section-has-one-free-space section)))
                     (sections board)))))
 
 (defn create-fork [game]
@@ -30,7 +36,7 @@
                            (available board)))))
 
 (defn swap-players [game]
-  (coachs-game (:board game) (:p2 game) (:p1 game)))
+  (game-pieces (:board game) (:p2 game) (:p1 game)))
 
 (defn update-game [game space]
   (let [newboard (assoc (:board game) space (:p1 game))]
@@ -61,7 +67,7 @@
                          (concat center (opposite-corners game) corners sides))))
 
 (defn choose-move [game]
-  "Chooses best available move in Newell and Simon priority order"
+  "Choose best available move in Newell and Simon priority order"
   (some identity
         (list (win-game game)
               (block-win game)
