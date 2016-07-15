@@ -3,6 +3,7 @@
 
 (def new-game {:board board/empty-board :ongoing true :winner nil})
 (def not-nil? (complement nil?))
+(def creation-params (atom {}))
 
 (defn make-player [token type position]
   {:token token :type type :position position})
@@ -36,6 +37,7 @@
 
 (defn make-game [params]
   (let [game (atom (merge new-game (make-players params)))]
+    (swap! creation-params (fn [oldval] params))
     (set-validator! game
                     (fn [newval] (game-valid? newval)))
     game))
@@ -71,8 +73,5 @@
       (homogeneous-players? :automatic players) 3
       :else nil)))
 
-(defn extract-request [game]
-  (let [type (game-type game)
-        ordered-players (sort-by :position (extract-players game))
-        [t1 t2] (map :token ordered-players)]
-    {:type type :t1 t1 :t2 t2}))
+(defn reset [game]
+  (swap! game (fn [oldval] (setup-game @creation-params))))

@@ -24,6 +24,9 @@
 
 (def opposites (compute-opposites corners))
 
+(defn compute-odd-center [sz]
+  (sorted-set (int (Math/floor (/ sz 2)))))
+
 (defn compute-even-center [gap i j k l]
   (if (= k (+ j gap))
     (sorted-set i j k l)
@@ -32,7 +35,7 @@
 (defn compute-center [line-sz]
   (let [sz (compute-size line-sz)]
     (if (odd? sz)
-      (sorted-set (int (Math/floor (/ sz 2))))
+      (compute-odd-center sz)
       (apply compute-even-center (cons (dec line-sz) (compute-corners sz line-sz))))))
 
 (def center (compute-center line-size))

@@ -37,7 +37,7 @@
 
 (describe "game.game"
   (before
-    (reset game)
+    (maker/reset game)
     (swap! moves (fn [oldval] []))
     (def p1 (:p1 @game))
     (def p2 (:p2 @game))
@@ -55,7 +55,7 @@
         (should= (make-move-response (state-mkr [4] [0]) 0 p1 p2 true nil)
                  (second executed))
 
-        (reset game)
+        (maker/reset game)
         (should= executed
                  (for [move @moves] (move)))))
 
@@ -67,16 +67,4 @@
       (let [mini-gm (minify-game game)
             result (move game)]
         (should= (coach/choose-move mini-gm) (:space result))))
-
-  (it "resets a game to the correct type after 0 moves"
-      (doall
-        (for [type [0 1 2 3]]
-          (let [gm (atom (maker/setup-game {:type type :t1 'X :t2 'O}))]
-            (should= type (maker/game-type (reset gm)))))))
-
-  (it "resets a game to the correct type after 1 move"
-      (doall
-        (for [type [0 1 2 3]]
-          (let [gm (atom (maker/setup-game {:type type :t1 'X :t2 'O}))]
-            (move gm 0)
-            (should= type (maker/game-type (reset gm))))))))
+  )
