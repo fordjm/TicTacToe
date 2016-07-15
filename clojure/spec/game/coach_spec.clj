@@ -127,18 +127,10 @@
         (blocking-threat-prevents-fork move gm)))
 
   (it "prevents a fork by moving to intersection space"
-			(let [exes (util/assoc-all empty-board (concat (take to-take (rest (first (cols empty-board))))
+      (let [exes (util/assoc-all empty-board (concat (take to-take (rest (first (cols empty-board))))
                                                      (drop 2 (first (rows empty-board)))) 'X)
             board (util/assoc-all exes (take to-take (rest (last (cols exes)))) 'O)
             gm (game-pieces board 'O 'X)
             move (choose-move gm)]
-				(should (create-fork (game-pieces board (:p2 gm) (:p1 gm))))
-				(should-not (create-fork (game-pieces (assoc board move (:p1 gm)) (:p2 gm) (:p1 gm))))))
-
-  (it "tests opposite-corners"
-			(should= #{} (opposite-corners new-gm))
-			(doall
-				(for [[p1 p2] [['X 'O] ['O 'X]]]
-					(should= (for [opposite (reverse (sort corners))] #{opposite})
-									 (for [corner (sort corners)]
-										 (opposite-corners (game-pieces (assoc empty-board corner p1) p2 p1))))))))
+        (should (create-fork (game-pieces board (:p2 gm) (:p1 gm))))
+        (should-not (create-fork (game-pieces (assoc board move (:p1 gm)) (:p2 gm) (:p1 gm)))))))

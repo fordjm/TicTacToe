@@ -8,13 +8,14 @@
 
 (def size (compute-size line-size))
 
-(defn compute-corners [sz line-sz]
-  (sorted-set 0
-              (dec line-sz)
-              (- sz line-sz)
-              (dec sz)))
+(defn compute-corners [line-sz]
+  (let [sz (compute-size line-sz)]
+    (sorted-set 0
+                (dec line-sz)
+                (- sz line-sz)
+                (dec sz))))
 
-(def corners (compute-corners size line-size))
+(def corners (compute-corners line-size))
 
 (defn compute-opposites [cnrs]
   {(first cnrs) (last cnrs),
@@ -36,11 +37,17 @@
   (let [sz (compute-size line-sz)]
     (if (odd? sz)
       (compute-odd-center sz)
-      (apply compute-even-center (cons (dec line-sz) (compute-corners sz line-sz))))))
+      (apply compute-even-center (cons (dec line-sz) (compute-corners line-sz))))))
 
 (def center (compute-center line-size))
 
-(def sides (apply sorted-set (set/difference (set (range size)) center corners)))
+(defn compute-sides [line-sz]
+  (let [sz (compute-size line-sz)]
+    (apply sorted-set (set/difference (set (range sz))
+                                      (compute-center line-sz)
+                                      (compute-corners line-sz)))))
+
+(def sides (compute-sides line-size))
 
 (def empty-board (vec (range size)))
 

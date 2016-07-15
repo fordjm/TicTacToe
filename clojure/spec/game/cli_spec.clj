@@ -82,17 +82,17 @@
         (render-result p2)))
 
   (it "filters non-integer space input"
-			(should= (printed-line "Cannot move to selected space.")
-							 (with-out-str
-								 (with-in-str "w"
-															(game-view (move-handler (atom gm)))))))
+      (should= (printed-line "Cannot move to selected space.")
+               (with-out-str
+                 (with-in-str "w"
+                              (game-view (move-handler (atom gm)))))))
 
   (it "tests game-view with new game"
       (should= (printed-line (str (render-board board/empty-board) (prompt-str :manual)))
                (with-out-str (game-view gm))))
 
   (xit "tests game-view with valid move"
-			 (should= (printed-line (str (render-board (assoc board/empty-board 4 (:token p1))) (prompt-str :automatic)))
-								(with-out-str
-									(game-view (move-handler (atom gm))))))
+       (should= (printed-line (str (render-board (assoc board/empty-board 4 (:token p1))) (prompt-str :automatic)))
+                (with-out-str
+                  (game-view (move-handler (atom gm))))))
   )

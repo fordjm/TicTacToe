@@ -4,7 +4,7 @@
 
 (def parse-token #(symbol %))
 
-(def non-numeric "Must be a non-numeric character")
+(def non-numeric "Must be a single non-numeric character")
 
 (def validate-token [#(and (not (nil? (re-find #"[\S&&[^0-9]]" (str %))))
                            (= 1 (count (str %))))
@@ -61,11 +61,11 @@
 
 (defn interpret-msg [parsed]
   (let [{:keys [options arguments errors summary]} parsed]
-		(cond
-			(:help options) (usage summary)
-			(not (empty? arguments)) (usage summary)
-			errors (error-msg errors))))
+    (cond
+      (:help options) (usage summary)
+      (not (empty? arguments)) (usage summary)
+      errors (error-msg errors))))
 
 (defn interpret [args]
   (let [parsed (parse-args args)]
-		{:msg (interpret-msg parsed) :options (:options parsed)}))
+    {:msg (interpret-msg parsed) :options (:options parsed)}))

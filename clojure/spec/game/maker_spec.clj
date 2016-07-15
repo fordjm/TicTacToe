@@ -17,13 +17,13 @@
         p1 (:p1 val)]
     (swap! game (fn [oldval] (assoc val :p1 (:p2 val) :p2 p1)))))
 
-(describe "game.game-maker"
-  (it "sets up a game with one human and one computer player"
+(describe "game.maker"
+  (it "sets up a game with human P1 and computer P2"
       (let [[p1 p2] (extract-players (setup-game (default-params-with-type 0)))]
         (player-should-have-type p1 :manual)
         (player-should-have-type p2 :automatic)))
 
-  (it "sets up a game with one human and one computer player"
+  (it "sets up a game with computer P1 and human P2"
       (let [[p1 p2] (extract-players (setup-game (default-params-with-type 1)))]
         (player-should-have-type p1 :automatic)
         (player-should-have-type p2 :manual)))
@@ -53,13 +53,13 @@
   (it "should know an empty map is an invalid game"
       (should= false (game-valid? {})))
 
-  (it "resets a game to the correct type with players in order"
+  (it "resets a game to the correct type when player order has not changed"
       (doall
         (for [type [0 1 2 3]]
           (let [gm (atom (setup-game {:type type :t1 'X :t2 'O}))]
             (should= type (game-type (reset gm)))))))
 
-  (it "resets a game to the correct type with player order changed"
+  (it "resets a game to the correct type when player order has changed"
       (doall
         (for [type [0 1 2 3]]
           (let [gm (atom (setup-game {:type type :t1 'X :t2 'O}))]
