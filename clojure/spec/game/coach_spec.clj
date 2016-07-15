@@ -2,6 +2,7 @@
   (:require [speclj.core :refer :all]
             [game.coach :refer :all]
             [game.board :refer :all]
+            [game.board-evaluator :refer :all]
             [game.test-util :as util]))
 
 (def new-gm (game-pieces empty-board 'X 'O))

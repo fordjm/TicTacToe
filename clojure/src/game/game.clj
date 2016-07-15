@@ -1,5 +1,5 @@
 (ns game.game
-  (:require [game.board :as board]
+  (:require [game.board-evaluator :as evaluator]
             [game.coach :as coach]))
 
 (def moves (atom []))
@@ -20,8 +20,8 @@
                            :p1 (:p2 @game)
                            :p2 p1
                            :space space
-                           :ongoing (not (board/game-over? board))
-                           :winner (board/winner board)))
+                           :ongoing (not (evaluator/game-over? board))
+                           :winner (evaluator/winner board)))
                   {})))
 
 (defn make-move

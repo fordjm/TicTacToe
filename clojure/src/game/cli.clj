@@ -1,6 +1,7 @@
 (ns game.cli
   (:require [game.game :as game]
             [game.board :as board]
+            [game.board-evaluator :as evaluator]
             [clojure.string :as string]))
 
 (defn try-parse-int [value]
@@ -57,7 +58,7 @@
   (wrap-str
     (string/join
       (render-divider)
-      (render-rows (board/rows board)))
+      (render-rows (evaluator/rows board)))
     "\n"))
 
 (defn render-prompt [value]

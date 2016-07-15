@@ -1,5 +1,6 @@
 (ns game.coach
-  (:require [game.board :refer :all]))
+  (:require [game.board :refer :all]
+            [game.board-evaluator :refer :all]))
 
 (defn game-pieces [board p1 p2]
   {:board board :p1 p1 :p2 p2})
@@ -18,10 +19,10 @@
   (some identity (threats (:board game) (:p2 game))))
 
 (defn token-has-all-but-one-space [token section]
-	(= (dec line-size) (count (filter (fn [space] (= token space)) section))))
+  (= (dec line-size) (count (filter (fn [space] (= token space)) section))))
 
 (defn section-has-one-free-space [section]
-	(= 1 (count (filter (fn [space] (integer? space)) section))))
+  (= 1 (count (filter (fn [space] (integer? space)) section))))
 
 (defn has-fork? [board token]
   (< 1 (count (filter (fn [section]
