@@ -1,13 +1,14 @@
-Coding challenges
-================
+Clojure Tic-Tac-Toe
+The traditional 3x3 game played via the command line.
 
-*Note*: The pull request you submit should **not** involve this repo (8thlight/coding_challenges). Please do not submit a pull request to the 8th Light repo.
+Quick Start
+lein run launches a Human vs Computer game.
 
-1. Fork this repo.
-2. In your forked repo, go to *Settings* and click *Collaborators & teams*.
-3. At the bottom, add `8th-light-reviewer` as a collaborator.
-4. Clone the forked repo.
-5. Create a branch off `master` called `code-submission`.
-6. Select the language you would like to use from those available.
-7. Submit a pull request to merge the `code-submission` branch **in your forked repo** into the `master` branch **in your forked repo**.
+CLI Options
+Help:			lein run -- -h
+Game type:		-t #{0 1 2 3}
+P1 token:		-f #{all non-numeric single characters}
+P2 token:		-s #{all non-numeric single characters}
 
+Unit Tests
+lien spec starts the SpeclJ test suite.
