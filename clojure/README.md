@@ -1,9 +1,10 @@
-#Clojure Tic-Tac-Toe
+# Clojure Tic-Tac-Toe
 
 **Quick Start**  
 Launch a Human vs Computer game with lein run 
 
-**CLI Options**
+**CLI Options**  
+
 Option    | Value
 ------    | -----
 Help      | lein run -- -h  
