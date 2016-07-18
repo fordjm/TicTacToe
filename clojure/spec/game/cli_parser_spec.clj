@@ -47,7 +47,7 @@
                (parse-args [" -t   3"])))
 
   (it "screens invalid types"
-      (should= (default-args-with-error (invalid "-t 4" token-msg))
+      (should= (default-args-with-error (invalid "-t 4" type-msg))
                (parse-args ["-t 4"])))
 
   (it "handles missing option parameters"
@@ -88,7 +88,7 @@
       (should-have-msg-and-options (interpret ["foo"])
                                    (usage summ) default-options)
       (should-have-msg-and-options (interpret ["-t 4"])
-                                   (errors-msg (invalid "-t 4" token-msg)) default-options)
+                                   (errors-msg (invalid "-t 4" type-msg)) default-options)
       (should-have-msg-and-options (interpret ["-f 4"])
                                    (errors-msg (invalid "-f 4" non-numeric)) default-options)
       (should-have-msg-and-options (interpret ["-t 3"])

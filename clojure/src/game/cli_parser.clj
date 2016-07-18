@@ -14,13 +14,13 @@
   "Combined ideas from markhneedham.com/blog/2013/09/22/clojure-stripping-all-the-whitespace"
   (join "" (remove blank? (split str #"\s"))))
 
-(def token-msg "Must be a number between 0 and 3")
+(def type-msg "Must be a number between 0 and 3")
 
 (def cli-options
   [["-t" "--type TYPE" "Game type"
     :default 0
     :parse-fn #(Integer/parseInt %)
-    :validate [#(< -1 % 4) token-msg]]
+    :validate [#(< -1 % 4) type-msg]]
    ["-f" "--first TOKEN" "First player token"
     :default 'X
     :parse-fn parse-token
