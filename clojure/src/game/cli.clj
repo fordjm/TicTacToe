@@ -34,7 +34,7 @@
   (str outer inner outer))
 
 (defn render-three-char-space [contents]
-  "Max supported board size = 31x31 (much larger than available CLI space)"
+  "Max supported board size = 31x31"
   (let [length (count (str contents))]
     (cond
       (= 2 length) (str " " contents)
