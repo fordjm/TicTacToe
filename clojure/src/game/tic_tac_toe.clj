@@ -30,8 +30,8 @@
     (if msg
       (exit-with-error msg)
       (game-loop (setup-game {:type (:type options)
-                                    :t1 (:first options)
-                                    :t2 (:second options)})
+                              :t1 (:first options)
+                              :t2 (:second options)})
                  view
                  move-handler))))
 

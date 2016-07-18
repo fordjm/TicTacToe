@@ -5,6 +5,6 @@
 
 (defn -main [& args]
   (initialize game-view
-                  move-handler
-                  interpret
-                  args))
+              move-handler
+              interpret
+              args))
