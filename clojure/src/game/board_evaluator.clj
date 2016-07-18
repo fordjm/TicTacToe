@@ -1,8 +1,8 @@
 (ns game.board-evaluator
-  (:require [game.board :as board]))
+  (:require [game.board :refer [line-size]]))
 
 (defn rows [board]
-  (partition board/line-size board))
+  (partition line-size board))
 
 (defn cols [board]
   (apply map vector (rows board)))
@@ -30,7 +30,8 @@
   (or (win? board) (tie? board)))
 
 (defn winner [board]
-  (some (fn [section] (if (= 1 (count (distinct section))) (first section)))
+  (some (fn [section] (if (= 1 (count (distinct section)))
+                        (first section)))
         (sections board)))
 
 (defn selectable? [board space]

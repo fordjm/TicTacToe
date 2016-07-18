@@ -1,7 +1,7 @@
 (ns game.maker
-  (:require [game.board :as board]))
+  (:require [game.board :refer [empty-board size]]))
 
-(def new-game {:board board/empty-board :ongoing true :winner nil})
+(def new-game {:board empty-board :ongoing true :winner nil})
 (def not-nil? (complement nil?))
 (def creation-params (atom {}))
 
@@ -31,7 +31,7 @@
 
 (defn game-valid? [game]
   (let [board (:board game)]
-    (and (map? game) (coll? board) (= board/size (count board))
+    (and (map? game) (coll? board) (= size (count board))
          (boolean? (:ongoing game)) (every? player-valid? (map game [:p1 :p2]))
          (contains? game :winner))))
 

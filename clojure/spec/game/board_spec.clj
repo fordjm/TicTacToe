@@ -26,7 +26,7 @@
 
   (it "computes opposite corners"
       (doall
-        (for [line-sz (range 2 8)]
+        (for [line-sz (range 2 9)]
           (let [corners (compute-corners line-sz)
                 opposites (compute-opposites corners)]
             (should= (reverse corners)

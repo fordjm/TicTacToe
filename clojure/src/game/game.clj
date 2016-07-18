@@ -1,6 +1,6 @@
 (ns game.game
-  (:require [game.board-evaluator :as evaluator]
-            [game.coach :as coach]))
+  (:require [game.board-evaluator :refer [game-over? winner]]
+            [game.coach :refer [game-pieces choose-move]]))
 
 (def moves (atom []))
 
@@ -8,10 +8,10 @@
   (let [gameval @game
         p1val (:p1 gameval)
         p2val (:p2 gameval)]
-    (coach/game-pieces (:board gameval) (:token p1val) (:token p2val))))
+    (game-pieces (:board gameval) (:token p1val) (:token p2val))))
 
 (defn move
-  ([game] (move game (coach/choose-move (minify-game game))))
+  ([game] (move game (choose-move (minify-game game))))
   ([game space] (if (contains? (set (:board @game)) space)
                   (let [p1 (:p1 @game)
                         board (assoc (:board @game) space (:token p1))]
@@ -20,8 +20,8 @@
                            :p1 (:p2 @game)
                            :p2 p1
                            :space space
-                           :ongoing (not (evaluator/game-over? board))
-                           :winner (evaluator/winner board)))
+                           :ongoing (not (game-over? board))
+                           :winner (winner board)))
                   {})))
 
 (defn make-move

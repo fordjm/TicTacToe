@@ -1,5 +1,5 @@
 (ns game.board
-  (:require [clojure.set :as set]))
+  (:require [clojure.set :refer [difference]]))
 
 (def line-size 3)
 
@@ -43,7 +43,7 @@
 
 (defn compute-sides [line-sz]
   (let [sz (compute-size line-sz)]
-    (apply sorted-set (set/difference (set (range sz))
+    (apply sorted-set (difference (set (range sz))
                                       (compute-center line-sz)
                                       (compute-corners line-sz)))))
 

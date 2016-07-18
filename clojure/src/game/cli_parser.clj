@@ -1,6 +1,6 @@
 (ns game.cli-parser
   (:require [clojure.tools.cli :refer [parse-opts]]
-            [clojure.string :as string]))
+            [clojure.string :refer [join blank? split]]))
 
 (def parse-token #(symbol %))
 
@@ -12,7 +12,7 @@
 
 (defn strip-whitespace [str]
   "Combined ideas from markhneedham.com/blog/2013/09/22/clojure-stripping-all-the-whitespace"
-  (string/join "" (remove string/blank? (string/split str #"\s"))))
+  (join "" (remove blank? (split str #"\s"))))
 
 (def token-msg "Must be a number between 0 and 3")
 
@@ -52,12 +52,12 @@
         "  3    Computer vs Computer"
         ""
         "Enter lein run -- -h for help."]
-       (string/join \newline)))
+       (join \newline)))
 
 (def errors-follow "The following errors occurred while parsing your command:\n\n")
 
 (defn error-msg [errors]
-  (str errors-follow (string/join \newline errors)))
+  (str errors-follow (join \newline errors)))
 
 (defn interpret-msg [parsed]
   (let [{:keys [options arguments errors summary]} parsed]

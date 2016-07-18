@@ -1,5 +1,5 @@
 (ns game.tic-tac-toe
-  (:require [game.maker :as maker]))
+  (:require [game.maker :refer [setup-game]]))
 
 (def game-atom (atom {}))
 
@@ -29,7 +29,7 @@
   (let [{:keys [msg options]} interpreted-args]
     (if msg
       (exit-with-error msg)
-      (game-loop (maker/setup-game {:type (:type options)
+      (game-loop (setup-game {:type (:type options)
                                     :t1 (:first options)
                                     :t2 (:second options)})
                  view

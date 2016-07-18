@@ -1,8 +1,8 @@
 (ns game.cli
-  (:require [game.game :as game]
-            [game.board :as board]
-            [game.board-evaluator :as evaluator]
-            [clojure.string :as string]))
+  (:require [game.game :refer [execute-move make-move]]
+            [game.board :refer [line-size size]]
+            [game.board-evaluator :refer [rows]]
+            [clojure.string :refer [join]]))
 
 (defn try-parse-int [value]
   (try
@@ -10,10 +10,10 @@
     (catch NumberFormatException e nil)))
 
 (defn handle-manual-move [game]
-  (game/execute-move (game/make-move game (try-parse-int (read-line)))))
+  (execute-move (make-move game (try-parse-int (read-line)))))
 
 (defn handle-automatic-move [game]
-  (game/execute-move (game/make-move game)))
+  (execute-move (make-move game)))
 
 (defn move-handler [game]
   (let [p1 (:p1 @game)
@@ -22,7 +22,7 @@
       (= :manual type) (handle-manual-move game)
       (= :automatic type) (handle-automatic-move game))))
 
-(def highest (dec board/size))
+(def highest (dec size))
 
 (defn prompt-str [type]
   (cond
@@ -43,7 +43,7 @@
       contents)))
 
 (defn render-row [row]
-  (string/join "|" (map render-three-char-space row)))
+  (join "|" (map render-three-char-space row)))
 
 (defn render-rows [rows]
   (for [row (range (count rows))]
@@ -51,14 +51,14 @@
 
 (defn render-divider []
   (wrap-str
-    (apply str (interpose "+" (repeat board/line-size "===")))
+    (apply str (interpose "+" (repeat line-size "===")))
     "\n"))
 
 (defn render-board [board]
   (wrap-str
-    (string/join
+    (join
       (render-divider)
-      (render-rows (evaluator/rows board)))
+      (render-rows (rows board)))
     "\n"))
 
 (defn render-prompt [value]
