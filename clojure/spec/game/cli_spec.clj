@@ -8,12 +8,11 @@
 (defn printed-line [line]
   (str line "\r\n"))
 
-(def new-board empty-board)
 (def new-game-t2 (setup-game {:type 2 :t1 'X :t2 'O}))
 (def new-game-t3 (setup-game {:type 3 :t1 'O :t2 'X}))
 
 (defn token-takes-space [token space]
-  (assoc new-board space token))
+  (assoc empty-board space token))
 
 (defn make-cats-game
   ([] (make-cats-game new-game-t3))
@@ -41,12 +40,12 @@
                (with-out-str (game-view {}))))
 
   (it "views a new human vs computer game"
-      (should= (printed-line (str (render-board new-board)
+      (should= (printed-line (str (render-board empty-board)
                                   (prompt-str :manual)))
                (with-out-str (game-view new-game-t2))))
 
   (it "views a new computer vs human game"
-      (should= (printed-line (str (render-board new-board)
+      (should= (printed-line (str (render-board empty-board)
                                   (prompt-str :automatic)))
                (with-out-str (game-view new-game-t3))))
 
